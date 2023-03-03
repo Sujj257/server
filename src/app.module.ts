@@ -25,9 +25,12 @@ import { purchaseModule } from './services/billpurchase/purchase.module';
     purchaseModule,
   ],
   controllers: [AppController],
-  providers: [{
-    provide: APP_INTERCEPTOR,
-    useClass: ResponseInterceptor,
-  }, AppService],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+    AppService,
+  ],
 })
-export class AppModule { }
+export class AppModule {}

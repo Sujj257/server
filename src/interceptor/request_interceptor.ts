@@ -1,11 +1,16 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+} from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { SessionPayloadDto } from 'src/services/login/dto/jwttoken.dto';
 
 @Injectable()
 export class JwtInterceptor implements NestInterceptor {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const req = context.switchToHttp().getRequest();
@@ -13,7 +18,6 @@ export class JwtInterceptor implements NestInterceptor {
     if (token) {
       const decoded = this.jwtService.decode(token) as SessionPayloadDto;
       req.sessionpayload = decoded;
-
     }
     return next.handle();
   }

@@ -5,7 +5,7 @@ import { DatabaseModule } from '../database/database.module';
 
 @Module({
   controllers: [purchaseController],
-  imports:[DatabaseModule],
-  providers: [purchaseService]
+  imports: [DatabaseModule],
+  providers: [purchaseService],
 })
 export class purchaseModule {}

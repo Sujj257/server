@@ -5,8 +5,8 @@ import { DatabaseModule } from '../database/database.module';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-    providers:[SignupService],
-    imports:[DatabaseModule],
-    controllers:[SignupController],
+  providers: [SignupService],
+  imports: [DatabaseModule],
+  controllers: [SignupController],
 })
-export class bSignupModule{}
+export class bSignupModule {}

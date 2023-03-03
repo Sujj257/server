@@ -5,7 +5,7 @@ import { DatabaseModule } from '../database/database.module';
 
 @Module({
   controllers: [MenuController],
-  imports:[DatabaseModule],
-  providers: [MenuService]
+  imports: [DatabaseModule],
+  providers: [MenuService],
 })
 export class MenuModule {}

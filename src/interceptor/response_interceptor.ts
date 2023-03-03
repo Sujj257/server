@@ -1,8 +1,13 @@
-import { Injectable, NestInterceptor, ExecutionContext, CallHandler, HttpException } from '@nestjs/common';
+import {
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  HttpException,
+} from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CommonResponse } from './dto/response.dto';
-import { trueTypeOf } from 'src/utils/utils';
 
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
@@ -22,7 +27,9 @@ export class ResponseInterceptor implements NestInterceptor {
         } else {
           message = 'An error occurred while processing your request';
         }
-        return throwError(() => new HttpException({ response: message }, err.status));
+        return throwError(
+          () => new HttpException({ response: message }, err.status),
+        );
       }),
     );
   }

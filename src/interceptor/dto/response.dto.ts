@@ -1,4 +1,4 @@
 export interface CommonResponse {
-    response?: any;
-    message?: string;
-  }
+  response?: any;
+  message?: string;
+}

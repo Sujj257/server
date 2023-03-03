@@ -3,8 +3,13 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import { VersioningType, ValidationPipe, ValidationError, BadRequestException } from '@nestjs/common';
-import helmet from '@fastify/helmet'
+import {
+  VersioningType,
+  ValidationPipe,
+  ValidationError,
+  BadRequestException,
+} from '@nestjs/common';
+import helmet from '@fastify/helmet';
 import compression from '@fastify/compress';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -12,10 +17,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter()
+    new FastifyAdapter(),
   );
   app.enableCors();
-  await app.register(helmet)
+  await app.register(helmet);
   await app.register(compression);
 
   /// global prefix add for route
@@ -24,18 +29,21 @@ async function bootstrap() {
   /// api versioning part
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1'
+    defaultVersion: '1',
   });
 
   /// globally dto enabled
-  app.useGlobalPipes(new ValidationPipe({
-    exceptionFactory: (errors) => {
-      const messages = errors.map(error => `${error.property} has wrong value ${error.value}`);
-      console.log(messages);
-      return 'payload_exactly_not_match';
-    },
-  }));
-
+  app.useGlobalPipes(
+    new ValidationPipe({
+      exceptionFactory: (errors) => {
+        const messages = errors.map(
+          (error) => `${error.property} has wrong value ${error.value}`,
+        );
+        console.log(messages);
+        return 'payload_exactly_not_match';
+      },
+    }),
+  );
 
   /// swagger for api documentation
   const config = new DocumentBuilder()
@@ -50,4 +58,3 @@ async function bootstrap() {
   await app.listen(3000);
 }
 bootstrap();
-

@@ -5,11 +5,9 @@ import { SessionPayloadDto } from '../login/dto/jwttoken.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly jwtService: JwtService
-    ) { }
+  constructor(private readonly jwtService: JwtService) {}
 
-    async generateToken(payload: SessionPayloadDto) {
-        return this.jwtService.sign(payload);
-    }
+  async generateToken(payload: SessionPayloadDto) {
+    return this.jwtService.sign(payload);
+  }
 }

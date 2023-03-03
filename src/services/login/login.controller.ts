@@ -1,11 +1,17 @@
-import { Controller, Post, Body, UseGuards, Get, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Request,
+} from '@nestjs/common';
 import { LoginService } from './login.service';
 import { LoginDto } from './dto/login.dto';
 
-
 @Controller('login')
 export class LoginController {
-  constructor(private readonly loginService: LoginService) { }
+  constructor(private readonly loginService: LoginService) {}
 
   @Post()
   login(@Body() body: LoginDto) {
@@ -14,6 +20,6 @@ export class LoginController {
 
   @Get()
   getHello() {
-    return {data:'success'};
+    return { data: 'success' };
   }
 }

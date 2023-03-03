@@ -7,16 +7,20 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { JwtInterceptor } from 'src/interceptor/request_interceptor';
 
 @Module({
-    imports: [
-      JwtModule.register({
-        secret: jwtConstants.secret,
-        signOptions: { expiresIn: '1h' },
-      }),
-    ],
-    providers: [AuthService, {
+  imports: [
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
+  providers: [
+    AuthService,
+    {
       provide: APP_INTERCEPTOR,
       useClass: JwtInterceptor,
-    },JwtStrategy],
-    exports: [AuthService],
-  })
+    },
+    JwtStrategy,
+  ],
+  exports: [AuthService],
+})
 export class AuthModule {}
