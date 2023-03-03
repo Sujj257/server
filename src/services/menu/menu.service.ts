@@ -17,7 +17,7 @@ export class MenuService {
         payload.account_id = parseInt(payload.account_id);
       }
       console.log(payload.account_id);
-      var queryResponse = await this.db.executeFunc(
+      const queryResponse = await this.db.executeFunc(
         'select sd_draw($1,$2,$3,$4,$5,$6,$7)',
         'sd_draw',
         [

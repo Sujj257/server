@@ -14,21 +14,21 @@ export class MenuDto {
 
   @IsBoolean()
   @IsOptional()
-  one_pm: boolean = true;
+  one_pm = true;
 
   @IsBoolean()
   @IsOptional()
-  three_pm: boolean = true;
+  three_pm = true;
 
   @IsBoolean()
   @IsOptional()
-  six_pm: boolean = true;
+  six_pm = true;
 
   @IsBoolean()
   @IsOptional()
-  eight_pm: boolean = true;
+  eight_pm = true;
 
   @IsBoolean()
   @IsOptional()
-  isedit: boolean = false;
+  isedit = false;
 }

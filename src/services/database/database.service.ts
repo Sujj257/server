@@ -9,19 +9,19 @@ export class DatabaseService {
     funcName: string,
     parameters?: any[],
   ): Promise<any> {
-    var response = await this.manager
+    const response = await this.manager
       .query(query, parameters)
       .catch((reason: any) => {
         return { data: null, error: 'database function inside error' };
       });
 
     if (typeof response !== 'undefined' && response.length > 0) {
-      var data = response[0];
+      const data = response[0];
       try {
-        var value = JSON.stringify(data);
-        var check = JSON.parse(value);
+        const value = JSON.stringify(data);
+        const check = JSON.parse(value);
         console.log(check);
-        var result = JSON.parse(check[funcName]);
+        const result = JSON.parse(check[funcName]);
         if ('error' in result) {
           if (result.error != null) {
             return { data: null, error: result.error };

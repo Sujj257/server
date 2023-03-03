@@ -14,7 +14,7 @@ export class LoginService {
   async checkuser(payload: LoginDto) {
     // await this.FirebaseService.sendToTopic('deepak','deepak','test');
     try {
-      var queryResponse = await this.db.executeFunc(
+      const queryResponse = await this.db.executeFunc(
         'select lg_auth($1,$2,$3,$4)',
         'lg_auth',
         [
@@ -25,9 +25,9 @@ export class LoginService {
         ],
       );
       if (queryResponse.error === null) {
-        var sessionpayload = queryResponse.data as SessionPayloadDto;
-        var token = await this.AuthService.generateToken(sessionpayload);
-        var res = queryResponse.data;
+        const sessionpayload = queryResponse.data as SessionPayloadDto;
+        const token = await this.AuthService.generateToken(sessionpayload);
+        const res = queryResponse.data;
         res.token = token;
         return { data: res, error: null };
       } else {

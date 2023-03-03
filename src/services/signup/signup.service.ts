@@ -8,7 +8,7 @@ export class SignupService {
 
   async createUser(payload: SignupDto) {
     try {
-      var queryResponse = await this.db.executeFunc(
+      const queryResponse = await this.db.executeFunc(
         'select lg_createaccount($1,$2,$3,$4,$5,$6)',
         'lg_createaccount',
         [
