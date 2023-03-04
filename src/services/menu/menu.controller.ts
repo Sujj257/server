@@ -1,7 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { MenuService } from './menu.service';
 import { MenuDto } from './dto/menu.dto';
-import { SessionPayloadDto } from '../login/dto/jwttoken.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)

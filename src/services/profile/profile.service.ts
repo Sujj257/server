@@ -3,6 +3,7 @@ import { DatabaseService } from '../database/database.service';
 import { FetchProfileDto } from './dto/getprofile.dto';
 import { SessionPayloadDto } from '../login/dto/jwttoken.dto';
 import { UpdateProfileDto } from './dto/updateprofile.dto';
+import { nulltransform } from 'src/utils/utils';
 
 @Injectable()
 export class ProfileService {
@@ -29,14 +30,9 @@ export class ProfileService {
     sessionpayload: SessionPayloadDto,
   ) {
     try {
-      const privilage_level =
-        payload.privilage_level == 'null'
-          ? null
-          : parseInt(payload.privilage_level);
-      const daily_limit =
-        payload.daily_limit == 'null' ? null : parseInt(payload.daily_limit);
-      const weekly_limit =
-        payload.weekly_limit == 'null' ? null : parseInt(payload.weekly_limit);
+      const privilage_level = nulltransform(payload.privilage_level, true);
+      const daily_limit = nulltransform(payload.daily_limit, true);
+      const weekly_limit = nulltransform(payload.weekly_limit, true);
 
       const queryResponse = await this.db.executeFunc(
         'select lg_updateaccount($1,$2,$3,$4,$5,$6,$7)',

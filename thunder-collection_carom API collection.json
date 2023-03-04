@@ -1,0 +1,505 @@
+{
+    "client": "Thunder Client",
+    "collectionName": "carom API collection",
+    "dateExported": "2023-03-04T19:06:24.892Z",
+    "version": "1.1",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "38d8d348-a25a-4e81-be37-a34c0ce67b5f",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "signup",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/signup",
+            "method": "POST",
+            "sortNum": 10000,
+            "created": "2023-03-03T14:30:58.965Z",
+            "modified": "2023-03-03T19:17:27.580Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo5OCwic2Vzc2lvbl9pZCI6NjI4MDYsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiIxMTEiLCJpYXQiOjE2Nzc4NTM0MTIsImV4cCI6MTY3Nzg1NzAxMn0.XqH5hwf1AerdkwthCGn6l3_s8Qcx1tcvCudh8xp4jDA"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\": \"111\",\n  \"password\": \"111\",\n  \"privilage_level\": \"1\",\n  \"daily_limit\": \"1000\",\n  \"weekly_limit\": \"10000\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "ce12729b-5f12-4622-9867-0dfac071d704",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "login",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/login",
+            "method": "POST",
+            "sortNum": 15000,
+            "created": "2023-03-03T14:31:20.079Z",
+            "modified": "2023-03-03T20:01:09.027Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRlZXBhayIsInBhc3N3b3JkIjoiODc1NjU0IiwiaXBhZGRyZXNzIjoiNzY1NDU2NzgiLCJtYWNhZGRyZXNzIjoiZ2Zka2poZ2ZkIiwiaWF0IjoxNjc0MjQxMjM0LCJleHAiOjE2NzQyNDEyNTR9.hXLA2FMY__ke1b5XqRl05vkoYgYeB9shoCJUoC8Fm4A"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"1306\",\n  \"ipaddress\": \"192.168.1.1\",\n  \"appversion\": \"3.6\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "1e4257f8-68cf-46e2-aad4-5cdc0ec3dd55",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "menu",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/menu",
+            "method": "POST",
+            "sortNum": 30000,
+            "created": "2023-03-03T14:32:37.959Z",
+            "modified": "2023-03-03T19:29:17.248Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo5OCwic2Vzc2lvbl9pZCI6NjI4MDYsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiIxMTEiLCJpYXQiOjE2Nzc4NTM0MTIsImV4cCI6MTY3Nzg1NzAxMn0.XqH5hwf1AerdkwthCGn6l3_s8Qcx1tcvCudh8xp4jDA",
+                    "isDisabled": true
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"isedit\": false,\n  \"one_pm\": false,\n  \"three_pm\": false,\n  \"six_pm\": false,\n  \"eight_pm\": false\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "1248bcea-d0b7-4e48-afd2-f05d79fa94f5",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "purchase_report",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/reports/purchase",
+            "method": "POST",
+            "sortNum": 40000,
+            "created": "2023-03-03T19:53:30.394Z",
+            "modified": "2023-03-04T17:43:33.342Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": false\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "e1be4db9-6305-4140-a285-bff7d46a910b",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_execute",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/winning/execute",
+            "method": "POST",
+            "sortNum": 40078.2,
+            "created": "2023-03-04T18:49:48.632Z",
+            "modified": "2023-03-04T18:54:47.744Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"draw_id\": 1,\n  \"draw_date\": \"2023-01-01\",\n  \"first\": \"123\",\n  \"second\": \"345\",\n  \"third\": \"\",\n  \"forth\": \"\",\n  \"fifth\": \"\",\n  \"sixth\": [\"897\",\"457\",\"987\"],\n  \"hidden_update\": true\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "5e7adffd-5c6b-4b43-83c3-afd02c656588",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_detail_view",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/winning/detailview",
+            "method": "POST",
+            "sortNum": 40156.3,
+            "created": "2023-03-04T18:11:58.192Z",
+            "modified": "2023-03-04T18:14:41.988Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"p_date\": \"2022-09-15\",\n  \"draw_id\": \"1\",\n  \"ticket_type\": \"DEAR\",\n  \"number\": \"267\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "76033ecc-666a-4d30-8478-238be3047581",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_price_update",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/winning/prize/update",
+            "method": "POST",
+            "sortNum": 40195.4,
+            "created": "2023-03-04T18:57:59.529Z",
+            "modified": "2023-03-04T19:00:56.939Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"99\",\n  \"updated_by\": \"null\",\n  \"dear_1st_prize\": 5000,\n  \"dear_2st_prize\": 2000,\n  \"dear_3st_prize\": 0,\n  \"dear_4st_prize\": 0,\n  \"dear_5st_prize\": 0,\n  \"dear_6st_prize\": 0,\n  \"abc_1st_prize\": 0,\n  \"abbcac_1st_prize\": 0,\n  \"box_same_1st_prize\": 0,\n  \"box_both_1st_prize\": 0,\n  \"box_both_2st_prize\": 0,\n  \"box_shuffle_1st_prize\": 0,\n  \"box_shuffle_2st_prize\": 0\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "f1d9ed98-5582-4f62-9134-b13341626b30",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_commission_update",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/winning/commission/update",
+            "method": "POST",
+            "sortNum": 40214.9,
+            "created": "2023-03-04T19:01:44.221Z",
+            "modified": "2023-03-04T19:03:07.376Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\r\n  \"account_id\": \"99\",\r\n  \"updated_by\": \"null\",\r\n  \"dear_1st_prize_commission\": 5000,\r\n  \"dear_2st_prize_commission\": 2000,\r\n  \"dear_3st_prize_commission\": 0,\r\n  \"dear_4st_prize_commission\": 0,\r\n  \"dear_5st_prize_commission\": 0,\r\n  \"dear_6st_prize_commission\": 0,\r\n  \"abc_1st_prize_commission\": 0,\r\n  \"abbcac_1st_prize_commission\": 0,\r\n  \"box_same_1st_prize_commission\": 0,\r\n  \"box_both_1st_prize_commission\": 0,\r\n  \"box_both_2st_prize_commission\": 0,\r\n  \"box_shuffle_1st_prize_commission\": 0,\r\n  \"box_shuffle_2st_prize_commission\": 0,\r\n  \"block_from_draw\":false\r\n  \r\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "fa7d2aee-36b6-440b-bfcb-90481e4ef21f",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_result_view",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/winning/resultview",
+            "method": "POST",
+            "sortNum": 40234.4,
+            "created": "2023-03-04T18:15:07.496Z",
+            "modified": "2023-03-04T18:16:23.986Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"from_date\": \"2022-09-15\",\n  \"to_date\": \"2022-09-15\",\n  \"draw_id\": \"1\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "187db28f-8029-44af-84ad-9a5a1ca13240",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "daily_report",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/reports/daily",
+            "method": "POST",
+            "sortNum": 40312.5,
+            "created": "2023-03-04T17:55:28.632Z",
+            "modified": "2023-03-04T17:55:53.434Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": false\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "3006611a-8c62-4f77-8a68-fc21890498d6",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "winning_report",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/reports/winning",
+            "method": "POST",
+            "sortNum": 40625,
+            "created": "2023-03-04T17:54:20.240Z",
+            "modified": "2023-03-04T17:57:23.359Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"78\",\n  \"from_date\": \"2022-09-15\",\n  \"to_date\": \"2022-09-15\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": true\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "49c4cc93-9f89-4a04-8e00-c47853261579",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "topcount_report",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/reports/topcount",
+            "method": "POST",
+            "sortNum": 41250,
+            "created": "2023-03-04T17:45:51.568Z",
+            "modified": "2023-03-04T17:46:20.579Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "7464a908-9c34-43f2-901b-422de6efae11",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "totalcount_report",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/reports/totalcount",
+            "method": "POST",
+            "sortNum": 42500,
+            "created": "2023-03-04T17:41:52.424Z",
+            "modified": "2023-03-04T17:45:18.917Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2022-01-01\",\n  \"to_date\": \"2023-01-20\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "ff4ac094-717e-44f3-9a85-a173d0bc9c9b",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "purchase_bill",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/purchase/create",
+            "method": "POST",
+            "sortNum": 45000,
+            "created": "2023-03-04T09:36:54.185Z",
+            "modified": "2023-03-04T11:22:07.883Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"draw_id\": 3,\n  \"tickets\": [\n    {\n      \"type\": \"DEAR\",\n      \"number\": \"124\",\n      \"count\": \"10000\",\n      \"c_amt\": \"50\",\n      \"d_amt\": \"20\",\n      \"customer\": \"\"\n    }\n  ],\n  \"p_date\": \"2023-03-04\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "998bb549-e195-426c-b3da-51b951646dfc",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "delete_bill",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/purchase/delete",
+            "method": "POST",
+            "sortNum": 50000,
+            "created": "2023-03-04T09:34:33.659Z",
+            "modified": "2023-03-04T09:36:32.083Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"bill_id\": \"50000\",\n  \"ticket_id\": \"null\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "c5f882a5-170e-42ec-bd65-ef3c775d7e07",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "get_downline",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/downline",
+            "method": "POST",
+            "sortNum": 60000,
+            "created": "2023-03-04T14:04:54.678Z",
+            "modified": "2023-03-04T14:09:37.888Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"show_my_acc\": false\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "b3c0488c-4749-40d0-822f-dbc283c7e85a",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "get_commission",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/commission/fetch",
+            "method": "POST",
+            "sortNum": 70000,
+            "created": "2023-03-04T14:05:46.834Z",
+            "modified": "2023-03-04T14:09:21.761Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"56\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "ebd10d61-7c5e-428b-85f5-a6f59330e4ea",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "get_profile",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/profile/fetch",
+            "method": "POST",
+            "sortNum": 75000,
+            "created": "2023-03-04T14:44:41.324Z",
+            "modified": "2023-03-04T14:54:00.909Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"99\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "e21e40de-578e-447b-8315-8d52c0939b2d",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "update_commission",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/commission/update",
+            "method": "POST",
+            "sortNum": 80000,
+            "created": "2023-03-04T14:13:21.643Z",
+            "modified": "2023-03-04T14:15:28.589Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": 56,\n  \"abc\": \"1.1\",\n  \"abbcac\": \"1.0\",\n  \"s_dear\": \"1.0\",\n  \"s_box\": \"1.0\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "e9b07fb8-20d2-42bf-820f-65d865c60fe0",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "update_profile",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/profile/update",
+            "method": "POST",
+            "sortNum": 90000,
+            "created": "2023-03-04T14:45:15.844Z",
+            "modified": "2023-03-04T15:05:10.629Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"99\",\n  \"password\": \"1402\",\n  \"privilage_level\": \"3\",\n  \"daily_limit\": \"100\",\n  \"weekly_limit\": \"null\",\n  \"block\": false\n}",
+                "form": []
+            },
+            "tests": []
+        }
+    ],
+    "settings": {
+        "headers": [
+            {
+                "name": "Authorization",
+                "value": "",
+                "isDisabled": true
+            }
+        ],
+        "auth": {
+            "type": "bearer",
+            "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMxMjQsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzk1NTk0NSwiZXhwIjoxNjc3OTU5NTQ1fQ.hETUMHRCQatoozygrPaquxEtU7DhOyXP27MAcZEuKn0"
+        },
+        "tests": [],
+        "envId": "bb9ad9d3-ff41-4c60-b955-033b8ab86b10"
+    }
+}
