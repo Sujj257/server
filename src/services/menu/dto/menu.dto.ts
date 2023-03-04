@@ -1,11 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsInt,
-  IsBoolean,
-  IsOptional,
-  isNotEmpty,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
 
 export class MenuDto {
   @IsString()

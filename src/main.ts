@@ -3,16 +3,13 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
-import {
-  VersioningType,
-  ValidationPipe,
-  ValidationError,
-  BadRequestException,
-} from '@nestjs/common';
+import { VersioningType, ValidationPipe } from '@nestjs/common';
 import helmet from '@fastify/helmet';
 import compression from '@fastify/compress';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -55,6 +52,16 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  const logger = new Logger();
+
+  logger.debug(`Application started`);
+
+  app.useLogger(logger);
+
+  const port = 3000;
+
+  app.listen(port, () => {
+    logger.debug(`Server listening on port ${port}`);
+  });
 }
 bootstrap();

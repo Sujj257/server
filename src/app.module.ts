@@ -12,6 +12,11 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptor/response_interceptor';
 import { MenuModule } from './services/menu/menu.module';
 import { purchaseModule } from './services/billpurchase/purchase.module';
+import { DownlineModule } from './services/downline/downline.module';
+import { ProfileModule } from './services/profile/profile.module';
+import { CommissionModule } from './services/commission/commission.module';
+import { ReportsModule } from './services/reports/reports.module';
+import { WinningModule } from './services/winning/winning.module';
 
 @Module({
   imports: [
@@ -23,6 +28,11 @@ import { purchaseModule } from './services/billpurchase/purchase.module';
     DatabaseModule,
     MenuModule,
     purchaseModule,
+    DownlineModule,
+    ProfileModule,
+    CommissionModule,
+    ReportsModule,
+    WinningModule,
   ],
   controllers: [AppController],
   providers: [
