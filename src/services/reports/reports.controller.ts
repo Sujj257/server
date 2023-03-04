@@ -6,7 +6,10 @@ import { TopCountReportDto } from './dto/topcountreport.dto';
 import { TotalCountReportDto } from './dto/totalcountreport.dto';
 import { WinningReportDto } from './dto/winningreport.dto';
 import { DailyReportDto } from './dto/dailyreport.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('reports')
 @UseGuards(JwtAuthGuard)
 @Controller('reports')
 export class ReportsController {

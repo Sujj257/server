@@ -3,7 +3,10 @@ import { CommissionService } from './commission.service';
 import { FetchCommissionDto } from './dto/fetchcommission.dto';
 import { UpdateCommissionDto } from './dto/updatecommission.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('commission')
 @UseGuards(JwtAuthGuard)
 @Controller('commission')
 export class CommissionController {

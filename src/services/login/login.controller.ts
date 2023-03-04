@@ -1,7 +1,9 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { LoginService } from './login.service';
 import { LoginDto } from './dto/login.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('login')
 @Controller('login')
 export class LoginController {
   constructor(private readonly loginService: LoginService) {}
@@ -9,10 +11,5 @@ export class LoginController {
   @Post()
   login(@Body() body: LoginDto) {
     return this.loginService.checkuser(body);
-  }
-
-  @Get()
-  getHello() {
-    return { data: 'success' };
   }
 }

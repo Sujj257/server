@@ -6,7 +6,10 @@ import { WinningResultViewDto } from './dto/resultview.dto';
 import { WinningPrizeUpdateDto } from './dto/winningprizeupdate.dto';
 import { WinningCommissionDto } from './dto/winningcommission.dto';
 import { WinningExecuteDto } from './dto/winningexecute.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('winning')
 @UseGuards(JwtAuthGuard)
 @Controller('winning')
 export class WinningController {

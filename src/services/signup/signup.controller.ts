@@ -3,7 +3,10 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { SessionPayloadDto } from '../login/dto/jwttoken.dto';
 import { SignupService } from './signup.service';
 import { SignupDto } from './dto/signup.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiBearerAuth()
+@ApiTags('signup')
 @UseGuards(JwtAuthGuard)
 @Controller('signup')
 export class SignupController {

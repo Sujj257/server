@@ -6,7 +6,11 @@ import {
 import { VersioningType, ValidationPipe } from '@nestjs/common';
 import helmet from '@fastify/helmet';
 import compression from '@fastify/compress';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerDocumentOptions,
+} from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 import { Logger } from '@nestjs/common';
@@ -47,9 +51,14 @@ async function bootstrap() {
     .setTitle('carom')
     .setDescription('The carom App API Documentation')
     .setVersion('1.0')
-    .addTag('API')
+    .setBasePath('docmentation')
+    .addBearerAuth()
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+
+  const options: SwaggerDocumentOptions = {
+    deepScanRoutes: true,
+  };
+  const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api', app, document);
 
   const logger = new Logger();
@@ -59,7 +68,6 @@ async function bootstrap() {
   app.useLogger(logger);
 
   const port = 3000;
-
   app.listen(port, () => {
     logger.debug(`Server listening on port ${port}`);
   });
