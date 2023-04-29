@@ -32,5 +32,5 @@ export class LoginDto {
     description: 'appversion',
     example: '3.7',
   })
-  appversion: string;
+  version: string;
 }

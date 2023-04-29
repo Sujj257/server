@@ -3,7 +3,7 @@ import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class DatabaseService {
-  constructor(private manager: EntityManager) {}
+  constructor(private manager: EntityManager) { }
   async executeFunc(
     query: string,
     funcName: string,
@@ -21,7 +21,7 @@ export class DatabaseService {
         const value = JSON.stringify(data);
         const check = JSON.parse(value);
         const result = JSON.parse(check[funcName]);
-        Logger.log(result);
+        Logger.log('Database Result : ' + result);
         if ('error' in result) {
           if (result.error != null) {
             return { data: null, error: result.error };
