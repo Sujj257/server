@@ -8,7 +8,7 @@ import { bSignupModule } from './services/signup/signup.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { databaseConfig } from './config/database.config';
 import { DatabaseModule } from './services/database/database.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { ResponseInterceptor } from './interceptor/response_interceptor';
 import { MenuModule } from './services/menu/menu.module';
 import { purchaseModule } from './services/billpurchase/purchase.module';
@@ -17,9 +17,14 @@ import { ProfileModule } from './services/profile/profile.module';
 import { CommissionModule } from './services/commission/commission.module';
 import { ReportsModule } from './services/reports/reports.module';
 import { WinningModule } from './services/winning/winning.module';
+import { ManageAppModule } from './services/manage_app/manage_app.module';
+import {  ValidationExceptionFilter } from './middleware/response_middleware';
+import { GlobalInterceptorsModule } from './middleware/global-interceptors.module';
+
 
 @Module({
   imports: [
+    GlobalInterceptorsModule,
     LoginModule,
     AuthModule,
     ScheduleModule.forRoot(),
@@ -33,12 +38,17 @@ import { WinningModule } from './services/winning/winning.module';
     CommissionModule,
     ReportsModule,
     WinningModule,
+    ManageAppModule,
   ],
   controllers: [AppController],
   providers: [
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: ValidationExceptionFilter,
     },
     AppService,
   ],

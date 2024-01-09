@@ -1,16 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDecimal, IsNotEmpty, IsInt } from 'class-validator';
+import { IsDecimal, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class UpdateCommissionDto {
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
   @ApiProperty({
     description: 'account_id',
     example: 56,
   })
-  account_id: number;
+  account_id: string;
 
-  @IsDecimal()
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
     description: 'abc',
@@ -18,7 +18,7 @@ export class UpdateCommissionDto {
   })
   abc: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
     description: 'abbcac',
@@ -26,7 +26,7 @@ export class UpdateCommissionDto {
   })
   abbcac: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
     description: 's_dear',
@@ -34,7 +34,7 @@ export class UpdateCommissionDto {
   })
   s_dear: number;
 
-  @IsDecimal()
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
     description: 's_box',

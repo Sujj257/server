@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "collectionName": "carom API collection",
-    "dateExported": "2023-03-04T19:06:24.892Z",
+    "dateExported": "2024-01-04T15:08:57.017Z",
     "version": "1.1",
     "folders": [],
     "requests": [
@@ -14,18 +14,22 @@
             "method": "POST",
             "sortNum": 10000,
             "created": "2023-03-03T14:30:58.965Z",
-            "modified": "2023-03-03T19:17:27.580Z",
+            "modified": "2023-12-28T19:34:33.626Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo5OCwic2Vzc2lvbl9pZCI6NjI4MDYsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiIxMTEiLCJpYXQiOjE2Nzc4NTM0MTIsImV4cCI6MTY3Nzg1NzAxMn0.XqH5hwf1AerdkwthCGn6l3_s8Qcx1tcvCudh8xp4jDA"
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"username\": \"111\",\n  \"password\": \"111\",\n  \"privilage_level\": \"1\",\n  \"daily_limit\": \"1000\",\n  \"weekly_limit\": \"10000\"\n}",
+                "raw": "{\n  \"username\": \"sub_test_3_1_1_1_1_1\",\n  \"password\": \"111\",\n  \"privilage_level\": \"3\",\n  \"daily_limit\": \"100000\",\n  \"weekly_limit\": \"10000000\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -38,17 +42,42 @@
             "method": "POST",
             "sortNum": 15000,
             "created": "2023-03-03T14:31:20.079Z",
-            "modified": "2023-03-03T20:01:09.027Z",
+            "modified": "2024-01-02T20:05:53.602Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImRlZXBhayIsInBhc3N3b3JkIjoiODc1NjU0IiwiaXBhZGRyZXNzIjoiNzY1NDU2NzgiLCJtYWNhZGRyZXNzIjoiZ2Zka2poZ2ZkIiwiaWF0IjoxNjc0MjQxMjM0LCJleHAiOjE2NzQyNDEyNTR9.hXLA2FMY__ke1b5XqRl05vkoYgYeB9shoCJUoC8Fm4A"
+                    "value": "",
+                    "isDisabled": true
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"1306\",\n  \"ipaddress\": \"192.168.1.1\",\n  \"appversion\": \"3.6\"\n}",
+                "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"111\",\n  \"ipaddress\": \"192.168.1.1\",\n  \"version\": \"3.7\"\n}",
+                "form": []
+            },
+            "tests": []
+        },
+        {
+            "_id": "347c453c-0d9b-4c94-8c16-cb9afa55e31f",
+            "colId": "2de96c97-b8fd-4646-8a25-6dd0b5ee221d",
+            "containerId": "",
+            "name": "user_checker",
+            "url": "{{BaseUrl}}/{{prefix}}/{{ApiVersion}}/login/check",
+            "method": "POST",
+            "sortNum": 22500,
+            "created": "2023-03-07T15:14:31.136Z",
+            "modified": "2023-03-07T15:24:46.425Z",
+            "headers": [
+                {
+                    "name": "Authorization",
+                    "value": ""
+                }
+            ],
+            "params": [],
+            "body": {
+                "type": "json",
+                "raw": "{\n  \"account_id\": \"56\"\n}",
                 "form": []
             },
             "tests": []
@@ -62,19 +91,22 @@
             "method": "POST",
             "sortNum": 30000,
             "created": "2023-03-03T14:32:37.959Z",
-            "modified": "2023-03-03T19:29:17.248Z",
+            "modified": "2023-12-25T14:56:40.398Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo5OCwic2Vzc2lvbl9pZCI6NjI4MDYsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiIxMTEiLCJpYXQiOjE2Nzc4NTM0MTIsImV4cCI6MTY3Nzg1NzAxMn0.XqH5hwf1AerdkwthCGn6l3_s8Qcx1tcvCudh8xp4jDA",
-                    "isDisabled": true
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"account_id\": \"null\",\n  \"isedit\": false,\n  \"one_pm\": false,\n  \"three_pm\": false,\n  \"six_pm\": false,\n  \"eight_pm\": false\n}",
+                "raw": "{\n  \"account_id\": \"155\",\n  \"isedit\": false,\n  \"one_pm\": false,\n  \"three_pm\": false,\n  \"six_pm\": false,\n  \"eight_pm\": false\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -87,18 +119,22 @@
             "method": "POST",
             "sortNum": 40000,
             "created": "2023-03-03T19:53:30.394Z",
-            "modified": "2023-03-04T17:43:33.342Z",
+            "modified": "2023-12-28T18:16:49.841Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": false\n}",
+                "raw": "{\n  \"account_id\": \"187\",\n  \"from_date\": \"2023-12-29\",\n  \"to_date\": \"2023-12-29\",\n  \"draw_id\": \"4\",\n  \"getalldata\": false,\n  \"filter\": \"\",\n  \"agent_rate\": false,\n  \"page_no\":1,\n  \"row_per_page\":50\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -111,11 +147,11 @@
             "method": "POST",
             "sortNum": 40078.2,
             "created": "2023-03-04T18:49:48.632Z",
-            "modified": "2023-03-04T18:54:47.744Z",
+            "modified": "2023-12-25T14:56:47.218Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -123,6 +159,10 @@
                 "type": "json",
                 "raw": "{\n  \"draw_id\": 1,\n  \"draw_date\": \"2023-01-01\",\n  \"first\": \"123\",\n  \"second\": \"345\",\n  \"third\": \"\",\n  \"forth\": \"\",\n  \"fifth\": \"\",\n  \"sixth\": [\"897\",\"457\",\"987\"],\n  \"hidden_update\": true\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -135,11 +175,11 @@
             "method": "POST",
             "sortNum": 40156.3,
             "created": "2023-03-04T18:11:58.192Z",
-            "modified": "2023-03-04T18:14:41.988Z",
+            "modified": "2023-12-25T14:56:51.981Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -147,6 +187,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"null\",\n  \"p_date\": \"2022-09-15\",\n  \"draw_id\": \"1\",\n  \"ticket_type\": \"DEAR\",\n  \"number\": \"267\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -159,11 +203,11 @@
             "method": "POST",
             "sortNum": 40195.4,
             "created": "2023-03-04T18:57:59.529Z",
-            "modified": "2023-03-04T19:00:56.939Z",
+            "modified": "2023-12-25T14:56:55.476Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -171,6 +215,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"99\",\n  \"updated_by\": \"null\",\n  \"dear_1st_prize\": 5000,\n  \"dear_2st_prize\": 2000,\n  \"dear_3st_prize\": 0,\n  \"dear_4st_prize\": 0,\n  \"dear_5st_prize\": 0,\n  \"dear_6st_prize\": 0,\n  \"abc_1st_prize\": 0,\n  \"abbcac_1st_prize\": 0,\n  \"box_same_1st_prize\": 0,\n  \"box_both_1st_prize\": 0,\n  \"box_both_2st_prize\": 0,\n  \"box_shuffle_1st_prize\": 0,\n  \"box_shuffle_2st_prize\": 0\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -183,18 +231,22 @@
             "method": "POST",
             "sortNum": 40214.9,
             "created": "2023-03-04T19:01:44.221Z",
-            "modified": "2023-03-04T19:03:07.376Z",
+            "modified": "2023-12-25T14:57:04.378Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\r\n  \"account_id\": \"99\",\r\n  \"updated_by\": \"null\",\r\n  \"dear_1st_prize_commission\": 5000,\r\n  \"dear_2st_prize_commission\": 2000,\r\n  \"dear_3st_prize_commission\": 0,\r\n  \"dear_4st_prize_commission\": 0,\r\n  \"dear_5st_prize_commission\": 0,\r\n  \"dear_6st_prize_commission\": 0,\r\n  \"abc_1st_prize_commission\": 0,\r\n  \"abbcac_1st_prize_commission\": 0,\r\n  \"box_same_1st_prize_commission\": 0,\r\n  \"box_both_1st_prize_commission\": 0,\r\n  \"box_both_2st_prize_commission\": 0,\r\n  \"box_shuffle_1st_prize_commission\": 0,\r\n  \"box_shuffle_2st_prize_commission\": 0,\r\n  \"block_from_draw\":false\r\n  \r\n}",
+                "raw": "{\n  \"account_id\": \"99\",\n  \"updated_by\": \"null\",\n  \"dear_1st_prize_commission\": 5000,\n  \"dear_2st_prize_commission\": 2000,\n  \"dear_3st_prize_commission\": 0,\n  \"dear_4st_prize_commission\": 0,\n  \"dear_5st_prize_commission\": 0,\n  \"dear_6st_prize_commission\": 0,\n  \"abc_1st_prize_commission\": 0,\n  \"abbcac_1st_prize_commission\": 0,\n  \"box_same_1st_prize_commission\": 0,\n  \"box_both_1st_prize_commission\": 0,\n  \"box_both_2st_prize_commission\": 0,\n  \"box_shuffle_1st_prize_commission\": 0,\n  \"box_shuffle_2st_prize_commission\": 0,\n  \"block_from_draw\":false\n  \n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -207,11 +259,11 @@
             "method": "POST",
             "sortNum": 40234.4,
             "created": "2023-03-04T18:15:07.496Z",
-            "modified": "2023-03-04T18:16:23.986Z",
+            "modified": "2023-12-25T14:57:10.007Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -219,6 +271,10 @@
                 "type": "json",
                 "raw": "{\n  \"from_date\": \"2022-09-15\",\n  \"to_date\": \"2022-09-15\",\n  \"draw_id\": \"1\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -231,18 +287,22 @@
             "method": "POST",
             "sortNum": 40312.5,
             "created": "2023-03-04T17:55:28.632Z",
-            "modified": "2023-03-04T17:55:53.434Z",
+            "modified": "2024-01-02T20:06:39.180Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": false\n}",
+                "raw": "{\n  \"account_id\": \"56\",\n  \"from_date\": \"2023-12-31\",\n  \"to_date\": \"2023-12-31\",\n  \"draw_id\": \"4\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": false\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -255,18 +315,17 @@
             "method": "POST",
             "sortNum": 40625,
             "created": "2023-03-04T17:54:20.240Z",
-            "modified": "2023-03-04T17:57:23.359Z",
+            "modified": "2023-12-25T14:57:18.884Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
-            "body": {
-                "type": "json",
-                "raw": "{\n  \"account_id\": \"78\",\n  \"from_date\": \"2022-09-15\",\n  \"to_date\": \"2022-09-15\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"agent_rate\": true\n}",
-                "form": []
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -279,18 +338,22 @@
             "method": "POST",
             "sortNum": 41250,
             "created": "2023-03-04T17:45:51.568Z",
-            "modified": "2023-03-04T17:46:20.579Z",
+            "modified": "2023-12-31T16:21:23.059Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-01-01\",\n  \"to_date\": \"2023-01-02\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true,\n  \"filter\": \"null\"\n}",
+                "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2023-12-30\",\n  \"to_date\": \"2023-12-30\",\n  \"draw_id\": \"4\",\n  \"getalldata\": true,\n  \"filter\": \"null\",\n  \"page_no\":1,\n  \"row_per_page\":50\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -303,11 +366,11 @@
             "method": "POST",
             "sortNum": 42500,
             "created": "2023-03-04T17:41:52.424Z",
-            "modified": "2023-03-04T17:45:18.917Z",
+            "modified": "2023-12-25T14:57:25.641Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -315,6 +378,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"null\",\n  \"from_date\": \"2022-01-01\",\n  \"to_date\": \"2023-01-20\",\n  \"draw_id\": \"1\",\n  \"getalldata\": true\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -327,18 +394,22 @@
             "method": "POST",
             "sortNum": 45000,
             "created": "2023-03-04T09:36:54.185Z",
-            "modified": "2023-03-04T11:22:07.883Z",
+            "modified": "2023-12-31T18:12:00.567Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": "Bearer {{token}}"
                 }
             ],
             "params": [],
             "body": {
                 "type": "json",
-                "raw": "{\n  \"draw_id\": 3,\n  \"tickets\": [\n    {\n      \"type\": \"DEAR\",\n      \"number\": \"124\",\n      \"count\": \"10000\",\n      \"c_amt\": \"50\",\n      \"d_amt\": \"20\",\n      \"customer\": \"\"\n    }\n  ],\n  \"p_date\": \"2023-03-04\"\n}",
+                "raw": "{\r\n  \"draw_id\": 4,\r\n  \"tickets\": [\r\n      {\r\n      \"type\": \"DEAR\",\r\n      \"number\": \"395\",\r\n      \"count\": \"5\",\r\n      \"customer\": \"\"\r\n    }\r\n  ],\r\n  \"p_date\": \"null\"\r\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -351,11 +422,11 @@
             "method": "POST",
             "sortNum": 50000,
             "created": "2023-03-04T09:34:33.659Z",
-            "modified": "2023-03-04T09:36:32.083Z",
+            "modified": "2023-12-25T14:57:31.619Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -363,6 +434,10 @@
                 "type": "json",
                 "raw": "{\n  \"bill_id\": \"50000\",\n  \"ticket_id\": \"null\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -375,11 +450,11 @@
             "method": "POST",
             "sortNum": 60000,
             "created": "2023-03-04T14:04:54.678Z",
-            "modified": "2023-03-04T14:09:37.888Z",
+            "modified": "2023-12-25T14:57:35.283Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -387,6 +462,10 @@
                 "type": "json",
                 "raw": "{\n  \"show_my_acc\": false\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -399,11 +478,11 @@
             "method": "POST",
             "sortNum": 70000,
             "created": "2023-03-04T14:05:46.834Z",
-            "modified": "2023-03-04T14:09:21.761Z",
+            "modified": "2023-12-25T14:57:39.433Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -411,6 +490,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"56\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -423,11 +506,11 @@
             "method": "POST",
             "sortNum": 75000,
             "created": "2023-03-04T14:44:41.324Z",
-            "modified": "2023-03-04T14:54:00.909Z",
+            "modified": "2023-12-25T14:57:43.149Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -435,6 +518,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"99\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -447,11 +534,11 @@
             "method": "POST",
             "sortNum": 80000,
             "created": "2023-03-04T14:13:21.643Z",
-            "modified": "2023-03-04T14:15:28.589Z",
+            "modified": "2023-12-25T14:57:46.887Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -459,6 +546,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": 56,\n  \"abc\": \"1.1\",\n  \"abbcac\": \"1.0\",\n  \"s_dear\": \"1.0\",\n  \"s_box\": \"1.0\"\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         },
@@ -471,11 +562,11 @@
             "method": "POST",
             "sortNum": 90000,
             "created": "2023-03-04T14:45:15.844Z",
-            "modified": "2023-03-04T15:05:10.629Z",
+            "modified": "2023-12-25T14:57:50.422Z",
             "headers": [
                 {
                     "name": "Authorization",
-                    "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMwODMsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzg3NDEyNCwiZXhwIjoxNjc3ODc3NzI0fQ.jHVhbvBfCKTkyXuJagL8ANbBG-oPHNz7fEYHrXdntsg"
+                    "value": ""
                 }
             ],
             "params": [],
@@ -483,6 +574,10 @@
                 "type": "json",
                 "raw": "{\n  \"account_id\": \"99\",\n  \"password\": \"1402\",\n  \"privilage_level\": \"3\",\n  \"daily_limit\": \"100\",\n  \"weekly_limit\": \"null\",\n  \"block\": false\n}",
                 "form": []
+            },
+            "auth": {
+                "type": "bearer",
+                "bearer": "{{token}}"
             },
             "tests": []
         }
@@ -497,9 +592,8 @@
         ],
         "auth": {
             "type": "bearer",
-            "bearer": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50X2lkIjo1Niwic2Vzc2lvbl9pZCI6NjMxMjQsInByaXZpbGFnZV9sZXZlbCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTY3Nzk1NTk0NSwiZXhwIjoxNjc3OTU5NTQ1fQ.hETUMHRCQatoozygrPaquxEtU7DhOyXP27MAcZEuKn0"
+            "bearer": "{{token})"
         },
-        "tests": [],
         "envId": "bb9ad9d3-ff41-4c60-b955-033b8ab86b10"
     }
 }

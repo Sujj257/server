@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class PurchaseReportDto {
@@ -24,6 +24,7 @@ export class PurchaseReportDto {
     description: 'to_date',
     example: '2023-01-03',
   })
+  
   to_date: string;
 
   @IsString()
@@ -56,4 +57,20 @@ export class PurchaseReportDto {
     example: false,
   })
   agent_rate: boolean;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Page_No',
+    example: 1,
+  })
+  page_no: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'row_per_page',
+    example: 10,
+  })
+  row_per_page: number;
 }

@@ -1,7 +1,7 @@
 {
     "client": "Thunder Client",
     "environmentName": "carom",
-    "dateExported": "2023-03-04T19:06:36.746Z",
+    "dateExported": "2024-01-04T15:09:02.561Z",
     "version": "1.0",
     "variables": [
         {
@@ -15,6 +15,10 @@
         {
             "name": "prefix",
             "value": "api"
+        },
+        {
+            "name": "token",
+            "value": ""
         }
     ]
 }

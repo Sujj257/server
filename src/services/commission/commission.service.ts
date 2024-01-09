@@ -6,7 +6,7 @@ import { UpdateCommissionDto } from './dto/updatecommission.dto';
 
 @Injectable()
 export class CommissionService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
   async FetchCommission(
     payload: FetchCommissionDto,
@@ -33,15 +33,18 @@ export class CommissionService {
     sessionpayload: SessionPayloadDto,
   ) {
     try {
+      const account_id =
+        parseInt(payload.account_id);
       const queryResponse = await this.db.executeFunc(
-        'select sd_addcommission($1,$2,$3,$4,$5)',
+        'select sd_addcommission($1,$2,$3,$4,$5,$6)',
         'sd_addcommission',
         [
-          payload.account_id,
+          account_id,
           payload.abc,
           payload.abbcac,
           payload.s_dear,
           payload.s_box,
+          sessionpayload.account_id,
         ],
       );
       return queryResponse;

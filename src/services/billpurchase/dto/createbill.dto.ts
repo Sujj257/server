@@ -19,21 +19,24 @@ export class PurchaseBillDto {
         type: 'DEAR',
         number: '124',
         count: '10',
-        c_amt: '50',
-        d_amt: '20',
-        customer: '',
       },
     ],
   })
   tickets: Array<TicketsDto>;
 
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({
     description: 'p_date',
     example: '2023-03-05',
   })
   p_date: string;
+
+  @IsString()
+  @ApiProperty({
+    description: 'customer',
+    example: 'test',
+  })
+  customer_name: string;
 }
 
 export class TicketsDto {
@@ -48,7 +51,4 @@ export class TicketsDto {
   @IsString()
   @IsNotEmpty()
   count: string;
-
-  @IsString()
-  customer: string;
 }

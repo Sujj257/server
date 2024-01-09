@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsBoolean } from 'class-validator';
 
-export class TotalCountReportDto {
+export class AdminCountReportDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({

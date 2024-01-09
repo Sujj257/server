@@ -7,6 +7,7 @@ import { TotalCountReportDto } from './dto/totalcountreport.dto';
 import { WinningReportDto } from './dto/winningreport.dto';
 import { DailyReportDto } from './dto/dailyreport.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AdminCountReportDto } from './dto/admincountreport.dto';
 
 @ApiBearerAuth()
 @ApiTags('reports')
@@ -38,5 +39,9 @@ export class ReportsController {
   @Post('daily')
   DailyReport(@Body() body: DailyReportDto, @Req() req) {
     return this.reportsService.DailyReport(body, req.sessionpayload);
+  }
+  @Post('admincount')
+  adminCountReport(@Body() body: AdminCountReportDto, @Req() req) {
+    return this.reportsService.adminCountReport(body, req.sessionpayload);
   }
 }

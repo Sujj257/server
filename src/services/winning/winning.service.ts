@@ -10,13 +10,20 @@ import { WinningExecuteDto } from './dto/winningexecute.dto';
 
 @Injectable()
 export class WinningService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
   async WinningExecute(
     payload: WinningExecuteDto,
     sessionpayload: SessionPayloadDto,
   ) {
     try {
+
+      if (payload.sixth.length > 30) {
+        return {
+          data: null,
+          error: 'unable to add more than 30 numbers on 6th prize',
+        };
+      }
       const sixth: string = '{' + payload.sixth.join(',') + '}';
 
       const queryResponse = await this.db.executeFunc(

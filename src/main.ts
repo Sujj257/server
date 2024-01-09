@@ -48,8 +48,8 @@ async function bootstrap() {
 
   /// swagger for api documentation
   const config = new DocumentBuilder()
-    .setTitle('carom')
-    .setDescription('The carom App API Documentation')
+    .setTitle('AJIO')
+    .setDescription('The AJIO App API Documentation')
     .setVersion('1.0')
     .setBasePath('docmentation')
     .addBearerAuth()

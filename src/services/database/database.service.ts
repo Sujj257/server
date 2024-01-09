@@ -45,6 +45,9 @@ export class DatabaseService {
       .catch((reason: any) => {
         return { data: null, error: 'database function inside error' };
       });
+    if (response.length > 0) {
+      return response[0];
+    }
     return response;
   }
 }

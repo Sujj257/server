@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class TopCountReportDto {
@@ -48,4 +48,20 @@ export class TopCountReportDto {
     example: 'null',
   })
   filter: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Page_No',
+    example: 1,
+  })
+  page_no: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'row_per_page',
+    example: 10,
+  })
+  row_per_page: number;
 }

@@ -10,7 +10,7 @@ import { JwtInterceptor } from 'src/interceptor/request_interceptor';
   imports: [
     JwtModule.register({
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '5h' },
     }),
   ],
   providers: [
@@ -23,4 +23,4 @@ import { JwtInterceptor } from 'src/interceptor/request_interceptor';
   ],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

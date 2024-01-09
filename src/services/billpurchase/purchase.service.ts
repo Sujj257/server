@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { PurchaseReportDto } from '../reports/dto/purchasereport.dto';
 import { SessionPayloadDto } from '../login/dto/jwttoken.dto';
 import { DatabaseService } from '../database/database.service';
 import { PurchaseDeleteDto } from './dto/deletebill.dto';
 import { PurchaseBillDto, TicketsDto } from './dto/createbill.dto';
+import { appConstants } from 'src/config/app.config';
 
 @Injectable()
 export class purchaseService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
   async purchaseDelete(
     payload: PurchaseDeleteDto,
@@ -35,18 +35,17 @@ export class purchaseService {
     sessionpayload: SessionPayloadDto,
   ) {
     try {
+
+      if (appConstants.purchase_stop == true) {
+        return { data: null, error: appConstants.purchase_error_msg };
+      }
+
       if (payload.tickets.length <= 0) {
         return { data: null, error: 'No tickets found!' };
       }
 
-      let commission = await this.db.executeFunc(
-        'select sd_getcommission($1)',
-        'sd_getcommission',
-        [sessionpayload.account_id],
-      );
-
       const errorlist: Array<any> = [];
-      let billId: number;
+      let billId: Array<object>;
 
       for (const index in payload.tickets) {
         const element: TicketsDto = payload.tickets[index];
@@ -61,6 +60,11 @@ export class purchaseService {
             sessionpayload.account_id,
           ],
         );
+
+        if (availablity.error == 'timeup') {
+          return availablity;
+        }
+
 
         if (availablity.data != 'true') {
           const nonavailcount = availablity.data.count;
@@ -82,61 +86,76 @@ export class purchaseService {
               payload.p_date,
             ],
           );
-          billId = res.data;
+          billId = res.data.ticket_list;
+          const valuesList = billId.map(obj => Object.values(obj)[0]);
+          console.log(valuesList);
+
+          for (var product of billId) {
+            await this.db.RawQuery('UPDATE BOOKING_TICKETS SET TICKET_MAP_LIST = $1 ,C_NAME = $2  WHERE BOOKING_ID = $3', [valuesList, payload.customer_name, product[Object.keys(product)[0]]]);
+          }
         }
 
         if (
-          billId != undefined &&
+          billId != undefined && billId.length > 0 &&
           parseInt(payload.tickets[index].count) != 0
         ) {
+          console.log('UPDATED VALUE:');
+          console.log(payload.tickets[index]);
+
           const count = parseInt(payload.tickets[index].count);
-          console.log(count);
-          let comission_damt = 0;
           let comission_camt: number =
-            parseInt(payload.tickets[index].count) * 10;
-          commission = commission.data;
+            parseInt(payload.tickets[index].count) * appConstants.triple;
 
-          if (element.type === 'DEAR') {
-            comission_damt = count * commission.dc_dear;
-          } else if (element.type === 'BOX') {
-            comission_damt = count * commission.dc_box;
-          } else if (['AB', 'BC', 'AC'].includes(element.type)) {
-            comission_damt = count * commission.dc_double;
-          } else {
-            comission_damt = count * commission.dc_single;
-            comission_camt = count * 12;
+          if (['A', 'B', 'C'].includes(element.type)) {
+            comission_camt = count * appConstants.single_double;
           }
+          var ticketIds: number[] = [];
 
-          await this.db.executeFunc(
-            'select sd_create_ticket($1,$2,$3,$4,$5,$6,$7,$8,$9,$10);',
-            'sd_create_ticket',
-            [
-              sessionpayload.account_id,
-              billId,
-              element.type,
-              element.number,
-              count,
-              parseInt(comission_camt.toFixed(2)),
-              parseInt(comission_damt.toFixed(2)),
-              element.customer,
-              payload.draw_id,
-              payload.p_date,
-            ],
-          );
+          for (var product of billId) {
+            let accountidkey = Object.keys(product)[0];
+
+            if (accountidkey == sessionpayload.account_id.toString() && sessionpayload.privilage_level == 2) {
+              await this.db.RawQuery('UPDATE BOOKING_TICKETS SET SUB_PURCHASED = TRUE  WHERE BOOKING_ID = $1', [product[accountidkey]]);
+            }
+            var tic = await this.db.executeFunc(
+              'select sd_create_ticket($1,$2,$3,$4,$5,$6,$7,$8,$9);',
+              'sd_create_ticket',
+              [
+                accountidkey,
+                product[accountidkey],
+                element.type,
+                element.number,
+                count,
+                parseInt(comission_camt.toFixed(2)),
+                0.00,
+                payload.draw_id,
+                payload.p_date,
+              ],
+            );
+            ticketIds.push(tic.data.ticket_id);
+          }
+          for (var product1 of ticketIds) {
+            await this.db.RawQuery('UPDATE TICKET_TABLE SET TICKETID_MAP_LIST = $1  WHERE TICKET_ID = $2', [ticketIds, product1]);
+          }
         }
-
-        if (billId === undefined) {
-          return {
+      }
+      if (billId === undefined) {
+        return {
+          data: {
             msg: 'today this number count is over!',
             notadded: errorlist,
-          };
-        } else {
-          return {
-            ticket_id: billId,
+          },
+          error: null
+        };
+      } else {
+        return {
+          data: {
+            // ticket_id: billId,
             msg: 'Bill Saved SuccessFully...',
             notadded: errorlist,
-          };
-        }
+          },
+          error: null
+        };
       }
     } catch (error) {
       throw error;
