@@ -1,5 +1,5 @@
 export const appConstants = {
-  isProduction: true,
+  isProduction: false,
   single_double: 12,
   triple: 10,
   purchase_stop: false,

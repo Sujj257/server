@@ -7,7 +7,7 @@ export const databaseConfig: TypeOrmModuleOptions = {
   username: 'postgres',
   password: 'Ctpl@123',
   logging: true,
-  database: 'ajio_24-12-2023',
+  database: 'ajio_13-01-2024',
   entities: [],
   synchronize: true,
 };

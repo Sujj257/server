@@ -16,8 +16,13 @@ import { appConstants } from 'src/config/app.config';
 @Injectable()
 export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const request = context.switchToHttp().getRequest();
+
     return next.handle().pipe(
       map((response) => {
+        if (request.method === 'GET') {
+          return response;
+        }
         var res = {
           response,
         } as CommonResponse;
@@ -25,8 +30,10 @@ export class ResponseInterceptor implements NestInterceptor {
         if (response.error != null) {
           return new HttpException(
             {
-              data: null,
-              error: response.error,
+              response: {
+                data: null,
+                error: response.error,
+              },
             },
             HttpStatus.BAD_REQUEST,
             {},

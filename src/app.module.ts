@@ -20,10 +20,12 @@ import { WinningModule } from './services/winning/winning.module';
 import { ManageAppModule } from './services/manage_app/manage_app.module';
 import {  ValidationExceptionFilter } from './middleware/response_middleware';
 import { GlobalInterceptorsModule } from './middleware/global-interceptors.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 
 
 @Module({
   imports: [
+    PrometheusModule.register(),
     GlobalInterceptorsModule,
     LoginModule,
     AuthModule,

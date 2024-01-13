@@ -18,8 +18,10 @@ export class ValidationExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<FastifyRequest>();
-    const errors = exception.getResponse() as any;
-
+    let errors = exception.getResponse() as any;
+    if (errors.response === null) {
+      errors = { response: errors };
+    }
     Logger.error('errors');
     Logger.error(errors);
     if (!appConstants.isProduction) {

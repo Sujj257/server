@@ -19,9 +19,11 @@ export class DecryptionInterceptor implements NestInterceptor {
 
     const request = context.switchToHttp().getRequest();
     console.log(request.body);
-    if (!appConstants.isProduction) {
-    } else {
-      request.body = JSON.parse(Cryptography.decrypt(request.body.request));
+    if (request.method.toString() != 'GET') {
+      if (!appConstants.isProduction) {
+      } else {
+        request.body = JSON.parse(Cryptography.decrypt(request.body.payload));
+      }
     }
     Logger.debug(request.body);
 
