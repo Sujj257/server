@@ -12,7 +12,8 @@ import {
   SwaggerDocumentOptions,
 } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
@@ -31,6 +32,11 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: '1',
+  });
+
+  /// globally enable static folder
+  app.useStaticAssets({
+    root: join(__dirname, '..', 'src', 'public'),
   });
 
   /// globally dto enabled
