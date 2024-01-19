@@ -49,10 +49,9 @@ ALTER TABLE booking_ticket DROP CONSTRAINT ticket;
 
 
 create table appconfig(
-event_id serial,
-event_name varchar(35) not null,
-events varchar(75) not null
-);
+				event_id serial,
+				event_name varchar(35) not null,
+				events varchar(75) not null);
 
 insert into appconfig(event_name,events) values('app_name','lottery');
 insert into appconfig(event_name,events) values('maintenance','false');
@@ -299,682 +298,7 @@ alter table user_login drop column is_subadmin;
 alter table user_login drop column isadmin;
 
 
-
-
-
-CREATE OR REPLACE FUNCTION public.lg_createaccount(
-    user__name character varying,
-    pass_word character varying,
-    privilage int,
-    daily__limit bigint,
-    weekly__limit bigint,
-	created_by bigint
-	) 
-RETURNS json 
-LANGUAGE 'plpgsql' 
-COST 100 
-VOLATILE PARALLEL UNSAFE 
-AS 
-$$ 
-DECLARE 
-    new_account_id BIGINT;
-    z_rec record;
-    z_downline bigint [];
-	PLACEMENT__ID BIGINT = 0;
-	ITEM1 RECORD;
-    UPLINE BIGINT[] := '{}';
-BEGIN
-
-	-- SELECT lg_createaccount('test2','111',1,1000,2000,185);
-	
-    SELECT privilage_level, downline,user_disabled FROM user_login WHERE account_id = created_by INTO z_rec;
-	
-	IF z_rec.user_disabled = true THEN
-		RETURN to_json(concat('{"data":null,"error":"your User Account Disabled"}'));
-	END IF;
-	
-	IF z_rec.privilage_level = 3 THEN
-		RETURN to_json(concat('{"data":null,"error":"Admin or subadmin only can create account"}'));
-	END IF;
-	
-	-- IF z_rec.privilage_level != 1 AND privilage <= z_rec.privilage_level  THEN
-	-- 	RETURN to_json(concat('{"data":null,"error":"SubAdmin cant Create Another Admin"}'));
-	-- END IF;
-	
-	IF exists(SELECT account_id FROM user_login WHERE user_name = user__name) = true THEN
-		RETURN to_json(concat('{"data":null,"error":"User Already Exist"}'));
-	END IF;
-
-	INSERT INTO user_login(user_name,user_password,privilage_level,created_at)
-		VALUES(user__name,md5(pass_word),privilage,CURRENT_TIMESTAMP) 
-		returning account_id INTO new_account_id;
-		
-	UPLINE := '{}';
-	UPLINE := array_append(UPLINE, new_account_id);
-	PLACEMENT__ID = created_by;
-	IF PLACEMENT__ID != 0 and ((select privilage_level from user_login where account_id = PLACEMENT__ID) != 1) THEN
-		UPLINE := array_append(UPLINE, PLACEMENT__ID);
-	END IF;
-	WHILE PLACEMENT__ID != 0 LOOP
-		select placement_id from user_details where account_id = PLACEMENT__ID INTO ITEM1;
-		PLACEMENT__ID = ITEM1.placement_id;
-		IF PLACEMENT__ID != 0 AND ((select privilage_level from user_login where account_id = PLACEMENT__ID) != 1)  THEN
-			UPLINE := array_append(UPLINE, PLACEMENT__ID);
-		END IF;
-	END LOOP;
--- 	RAISE NOTICE 'UPLINE LIST: %',UPLINE;
-
-	INSERT INTO user_details(account_id,placement_id,daily_limit,weekly_limit,upline_members) 
-		VALUES (new_account_id,created_by,daily__limit,weekly__limit,UPLINE) 
-		returning account_id INTO new_account_id;
-
-	IF new_account_id IS NULL THEN 
-		RETURN to_json(concat('{"data":null,"error":"Account Creation Failed"}'));
-	ELSE
-		z_downline := z_rec.downline;
-		z_downline := array_append(z_downline, new_account_id);
-		UPDATE user_login SET downline = z_downline WHERE  account_id = created_by;
-		INSERT INTO TICKETCONFIG(ACCOUNT_ID) VALUES (new_account_id);
-		RETURN to_json(concat('{"data":{"msg":"Account Creation Success","account_id":',new_account_id,'},"error":null}'));
-	END IF;
-END;
-$$;
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.lg_auth(
-    user__name character varying,
-    pass_word character varying,
-    ip__address character varying,
-    app__version character varying
-	) 
-RETURNS json 
-LANGUAGE 'plpgsql' 
-COST 100 
-VOLATILE PARALLEL UNSAFE 
-AS 
-$$ 
-DECLARE 
-    user_details RECORD;
-    my_session_id BIGINT;
-    z_data json;
-BEGIN
-
-	-- SELECT lg_auth('deepak','123','192.168.1.111','3.4');
-
-    IF (app__version :: numeric < (SELECT events FROM appconfig WHERE event_name = 'min_version') :: numeric) THEN 
-        RETURN to_json(concat('{"data":null,"error":"app is outdated-carrom_',
-							  (SELECT events FROM appconfig WHERE event_name = 'latest_version'),'.apk"}'));
-    END IF;
-
-    SELECT * FROM user_login
-        WHERE REPLACE(lower(user_name), ' ', '') = REPLACE(lower(user__name), ' ', '') 
-        AND user_password = md5(pass_word) INTO user_details;
-
-    IF user_details IS NULL THEN
-        RETURN to_json(concat('{"data":null,"error":"Wrong Password"}'));
-    END IF;
-	
-	IF user_details.user_disabled = TRUE THEN 
-        RETURN to_json(concat('{"data":null,"error":"User not found or disabled!"}'));
-    END IF;
-
-    INSERT INTO user_session(account_id, ip_address)
-        VALUES(user_details.account_id, ip__address :: cidr) 
-        RETURNING session_id INTO my_session_id;
-
-    SELECT json_build_object(
-            'account_id',user_details.account_id,
-            'session_id',my_session_id,
-            'privilage_level',user_details.privilage_level,
-            'username',user_details.user_name) INTO z_data;
-
-    RETURN to_json(concat('{"data":', z_data, ',"error":null}'));
-END;
-$$;
-
-
-CREATE OR REPLACE FUNCTION public.sd_draw(
-	account__id bigint,
-	one__pm boolean,
-    three__pm boolean,
-    six__pm boolean,
-    eight__pm boolean,
-    isedit boolean,
-	updated_by bigint
-	)
-RETURNS json
-LANGUAGE 'plpgsql'
-COST 100
-VOLATILE PARALLEL UNSAFE
-AS 
-$$
-DECLARE
-	z_data json;
-	z_rec record;
-	vr_rec record;
-	z_temp json[] := '{}';
-	item bigint;
-	z_query character varying;
-	z_output json;
-BEGIN
-
-	-- select sd_draw(76,false,false,false,false,false,56);
-	-- select sd_draw(76,true,false,false,false,true,56);
-	
-	IF isedit = true THEN
-		SELECT privilage_level FROM user_login WHERE account_id = updated_by INTO z_rec;
-		IF z_rec.privilage_level = 3 THEN
-			RETURN to_json(concat('{"data":null,"error":"Admin or subadmin only can Edit values"}'));
-		END IF;
-		
-		SELECT privilage_level FROM user_login 
-		WHERE case when account__id is null then true else account_id = account__id end INTO z_rec;
-
-		IF z_rec.privilage_level = 1 THEN
-			RETURN to_json(concat('{"data":null,"error":"cant disable draw for admin"}'));
-		ELSE
-			UPDATE user_details SET draw_1 = one__pm, draw_2 = three__pm, draw_3 = six__pm, draw_4 = eight__pm
-				WHERE account_id = account__id;
-			RETURN to_json(concat('{"data":"success","error":null}'));
-		END IF;
-	END IF;
-	
-	FOR item IN select draw_id from  drawconfig order by draw_id asc
-	LOOP
-		z_query := concat('SELECT draw_id,draw_time,color,draw_type,current_timestamp::date as date
-						  FROM user_details CROSS JOIN drawconfig 
-						  WHERE account_id=',account__id,' and draw_id =',item,' and draw_',item,'= true');
-		RAISE NOTICE 'z_query : %',z_query;
-		EXECUTE(z_query) INTO z_rec;
-		IF z_rec.draw_id IS NOT NULL THEN
-			SELECT to_json(z_rec) into z_output;
-			z_temp :=array_append(z_temp,z_output);
-		END IF;
-	END LOOP;
-	RETURN to_json(concat('{"data":',array_to_json(z_temp),',"error":null}'));
-END
-$$;
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_getcommission(
-	account__id bigint)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-declare
-	z_data json='{}';
-begin
-	
-	-- SELECT sd_get_commission(56);
-
-	IF exists(SELECT account_id FROM user_login WHERE account_id = account__id) = false THEN
-		RETURN to_json(concat('{"data":null,"error":"User Not Found!"}'));
-	END IF;
-	
-	select row_to_json(t) FROM(
-	select dc_single,dc_double,dc_dear,dc_box,current_timestamp::date as date from user_details where account_id = account__id
-	) t into z_data;
-	return to_json(concat('{"data":',z_data,',"error":null}'));
-end
-$BODY$;
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_getdownfloor(
-	account__id bigint,
-	showmyacc boolean DEFAULT true)
-    RETURNS bigint[]
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-DECLARE
-	rec record;
-	plcement__id BIGINT[] :='{}';
-BEGIN
-	-- select sd_getdownfloor(56);
-	
-	SELECT privilage_level,downline FROM user_login WHERE account_id=account__id INTO rec;
-
-	IF rec.privilage_level != 3 THEN
-		plcement__id = rec.downline;
-	END IF;
-	
-	IF showmyacc = true THEN
-		plcement__id := array_append(plcement__id,account__id);
-	END IF;
-	
-	RETURN plcement__id;
-END;	
-$BODY$;
-
-
-
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.ext_checklimit(
-	account__id bigint,
-	d_amt double precision,
-	purchase_date character varying default CURRENT_DATE
-)
-    RETURNS character varying
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-DECLARE
-	from_date CHARACTER VARYING;
-    to_date CHARACTER VARYING;
-    dailydraw_check bigint;
-    weeklydraw_check bigint;
-BEGIN
-
-	-- SELECT ext_checklimit(56,10000000);
-	SELECT date_trunc('week', now() :: TIMESTAMP) :: CHARACTER VARYING INTO from_date;
-	SELECT (date_trunc('week', now() :: TIMESTAMP) + INTERVAL '6 DAY') :: CHARACTER VARYING INTO to_date;
-	
-	select COALESCE(sum(c_amt),0) from booking_ticket where 
-						dealer_account_id = account__id and p_date = purchase_date 
-						and isdeleted=false into dailydraw_check;
-
-	IF (dailydraw_check + d_amt >= (select daily_limit from user_details where account_id = account__id)) THEN 
-		RETURN 'daily limit reached';
-	END IF;
-
-	select COALESCE(sum(c_amt),0) from booking_ticket where 
-						dealer_account_id = account__id and p_date between from_date and to_date
-						and isdeleted=false into weeklydraw_check;
-
-	IF (weeklydraw_check + d_amt >= (select weekly_limit from user_details where account_id = account__id)) THEN
-		RETURN 'weekly limit reached';
-	END IF;
-	
-	RETURN '';
-END
-$BODY$;
-
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.ext_datequery(
-	from_date character varying,
-	to_date character varying)
-    RETURNS character varying
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-BEGIN
-
-	-- SELECT ext_datequery('2022-09-21','2022-09-21');
-
-	IF to_date = 'null' AND from_date = 'null' THEN 
-       return concat(' ');
-	ELSEIF to_date = 'null' THEN 
-       return concat(E'p_date = \'', from_date, E'\' ');
-    ELSEIF from_date IS NOT NULL AND to_date IS NOT NULL THEN 
-       return concat( E'p_date between \'',from_date, E'\' and \'',to_date,E'\' ');
-    END IF;
-END
-$BODY$;
-
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_update_winningcommission(
-	account__id bigint,
-	updated__by bigint,
-	wc__dear_1 numeric,
-	wc__dear_2 numeric,
-	wc__dear_3 numeric,
-	wc__dear_4 numeric,
-	wc__dear_5 numeric,
-	wc__dear_6 numeric,
-	wc__single_1 numeric,
-	wc__double_1 numeric,
-	wc__box_same1 numeric,
-	wc__box_both1 numeric,
-	wc__box_both2 numeric,
-	wc__box_shuffle1 numeric,
-	wc__box_shuffle2 numeric,
-	block boolean
-)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS 
-$BODY$
-DECLARE
-	privilage integer;
-BEGIN
-
-	-- SELECT sd_update_winningcommission(null,56,5000,500, 251,100, 50,20,100, 700,7000 ,3800,1600,3000, 800,false);
-	-- select * from sd_winning_commission WHERE dealer_account_id = 58;
-
-	select privilage_level from user_login where account_id = updated__by into privilage;
-	
-	if (select privilage = any('{3,6}')) then
-		return to_json(concat('{"data":null,"error":"unable to edit"}'));
-	end if;
-	
-	UPDATE user_details SET wc_dear_1=wc__dear_1,
-							wc_dear_2=wc__dear_2,
-							wc_dear_3=wc__dear_3,
-							wc_dear_4=wc__dear_4,
-							wc_dear_5=wc__dear_5,
-							wc_dear_6=wc__dear_6,
-							wc_single_1=wc__single_1,
-							wc_double_1=wc__double_1,
-							wc_box_same1=wc__box_same1,
-							wc_box_both1=wc__box_both1,
-							wc_box_both2=wc__box_both2,
-							wc_box_shuffle1=wc__box_shuffle1,
-							wc_box_shuffle2=wc__box_shuffle2,
-							block_winning = block 
-						where account_id=account__id;
-						
-	return to_json(concat('{"data":"success","error":null}'));
-	END;
-$BODY$;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_update_winningprize(
-	account__id bigint,
-	updated__by bigint,
-	wp__dear_1 numeric,
-	wp__dear_2 numeric,
-	wp__dear_3 numeric,
-	wp__dear_4 numeric,
-	wp__dear_5 numeric,
-	wp__dear_6 numeric,
-	wp__single_1 numeric,
-	wp__double_1 numeric,
-	wp__box_same1 numeric,
-	wp__box_both1 numeric,
-	wp__box_both2 numeric,
-	wp__box_shuffle1 numeric,
-	wp__box_shuffle2 numeric)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-DECLARE
-	privilage integer;
-BEGIN
-
--- SELECT sd_update_winningprize(58,56,5000,500, 251,100, 50,20,100, 700,7000 ,3800,1600,3000, 800);
-	
-	select privilage_level from user_login where account_id = updated__by into privilage;
-	
-	if (select privilage = any('{3,6}')) then
-		return to_json(concat('{"data":null,"error":"unable to edit"}'));
-	end if;
-	
-	UPDATE user_details SET wp_dear_1=wp__dear_1,
-						wp_dear_2=wp__dear_2,
-						wp_dear_3=wp__dear_3,
-						wp_dear_4=wp__dear_4,
-						wp_dear_5=wp__dear_5,
-						wp_dear_6=wp__dear_6,
-						wp_single_1=wp__single_1,
-						wp_double_1=wp__double_1,
-						wp_box_same1=wp__box_same1,
-						wp_box_both1=wp__box_both1,
-						wp_box_both2=wp__box_both2,
-						wp_box_shuffle1=wp__box_shuffle1,
-						wp_box_shuffle2=wp__box_shuffle2
-					where account_id=account__id;
-	
-	return to_json(concat('{"data":"success","error":null}'));
-	END;
-$BODY$;
-
-
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_profiledetails(
-	account__id bigint)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-declare
-	z_data json;
-	z_rec record;
-begin
-
-	-- select sd_profiledetails(56);
-
-	if account__id is null or not Exists(select account_id from user_login where account_id = account__id) then 
-		return to_json(concat('{"data":null,"error":"User not found"}'));
-	end if;
-	
-	select row_to_json(t) from (
-		select * from user_details inner join user_login using(account_id) where user_login.account_id = account__id
-	)t into z_data;
-	
-	return to_json(concat('{"data":',to_json(z_data),',"error":null}'));
-end
-$BODY$;
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_winningresult(
-	from_date character varying,
-	to_date character varying,
-	draw__id integer)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-
-DECLARE
-	vr_historylist json ;
-	historylist json[] := '{}';
-	z_query character varying;
-	date_ character varying;
-	item record;
-BEGIN
-    -- select sd_winningresult('2022-11-01','2022-11-31',4,'null');
-	
-	SELECT ext_datequery(from_date,to_date) INTO date_;
-	date_:= (SELECT REPLACE (date_, 'p_date', 'draw_date'));
-
-	z_query := concat('select * from sd_winning_history where ',date_,
-					  ' and ',case when draw__id is null then concat('true') else concat('draw_id = ',draw__id,'') end,
-					  ' and is_delete=false  order by draw_date asc');
-					  
-	for item in execute(z_query)
-	loop
-		vr_historylist := (select row_to_json(item));
-		historylist := array_append(historylist,vr_historylist);
-	end loop;
-	
-	RETURN to_json(concat ('{"data":{"history":', to_json(historylist),'},"error":null}'));	
-END
-$BODY$;
-
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.lg_updateaccount(
-	account__id bigint,
-	pass_word character varying,
-	privilage__level int,
-	daily__limit bigint,
-	weekly__limit bigint,
-	updated_by bigint,
-	block boolean DEFAULT false)
-    RETURNS json
-    LANGUAGE 'plpgsql'
-    COST 100
-    VOLATILE PARALLEL UNSAFE
-AS $BODY$
-DECLARE
-	rec int;
-	rec1 int;
-	z_item bigint;
-BEGIN 
-	-- SELECT lg_updateaccount(99,'null',null,null,null,56,false);
-	
-    IF EXISTS(SELECT account_id FROM user_login WHERE account_id = account__id) IS NULL THEN
-	       RETURN to_json(concat('{"data":null,"error":"username not found"}'));
-    END IF;
-	
-	IF updated_by = account__id THEN 
-		RETURN to_json(concat(E'{"data":null,"error":"you cant edit your own details"}'));
-	END IF;
-	
-	SELECT privilage_level FROM user_login WHERE account_id = updated_by INTO rec;
-	SELECT privilage_level FROM user_login WHERE account_id = account__id INTO rec1;
-
-	IF rec = 3 THEN 
-		RETURN to_json(concat('{"data":null,"error":"Edit Account Access Restricted"}'));
-	END IF;
-	
-	IF rec = 2  AND privilage__level = 1 THEN 
-		RETURN to_json(concat('{"data":null,"error":"Sub Admin not enough privilage to edit"}'));
-	END IF;
-
-	IF pass_word != 'null' THEN
-		update user_login set user_password =md5(pass_word) where account_id=account__id;
-	END IF;
-
-	IF privilage__level IS NOT NULL THEN
-		update user_login set privilage_level = privilage__level where account_id=account__id;
-	END IF;
-
-	IF block IS NOT NULL THEN
-		if rec1 = any('{2,4,5}') then
-			for z_item in (select account_id from user_details where placement_id = account__id)
-			loop
-				raise notice '%',z_item;
-				update user_login set user_disabled =block where account_id=z_item;
-			end loop;
-		end if;
-		update user_login set user_disabled =block where account_id=account__id;
-	END IF;
-
-	IF daily__limit IS NOT NULL THEN
-		update user_details set daily_limit =daily__limit where account_id=account__id;
-	END IF;
-
-	IF weekly__limit IS NOT NULL THEN
-		update user_details set weekly_limit =weekly__limit where account_id=account__id;
-	END IF;
-
-	update user_login set updated_at =current_timestamp where account_id=account__id;
-	RETURN to_json(concat('{"data":"success","error":null}'));
-
-END;
-$BODY$;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_addcommission(
-	account__id bigint,
-	c_single double precision,
-	c_double double precision,
-	c_dear double precision,
-	c_box double precision
-	)
-RETURNS json
-LANGUAGE 'plpgsql'
-COST 100
-VOLATILE PARALLEL UNSAFE
-AS $BODY$
-BEGIN
-	-- select sd_addcommission(99,0,0,1,0);
-	if not exists(select account_id from user_login where account_id=account__id) then
-		return to_json(concat('{"data":null,"error":"User Not Found"}'));
-	end if;
-	
-	update user_details set dc_single = c_single,dc_double = c_double,
-		dc_dear = c_dear,dc_box = c_box where account_id=account__id;
-
-	return to_json(concat('{"data":"success","error":null}'));
-	
-END;
-$BODY$;
-
-
-
-
-
-CREATE OR REPLACE FUNCTION public.sd_editdrawtime(
-	req_by bigint,
-	is_edit boolean,
-	draw__id int,
-	event_name character varying,
-	event_time character varying
-	)
-RETURNS json
-LANGUAGE 'plpgsql'
-COST 100
-VOLATILE PARALLEL UNSAFE
-AS $BODY$
-declare
-	z_query character varying;
-	z_output json := '{}';
-BEGIN
-	-- select sd_editdrawtime(56,true,1,'draw_end','13:00:00');
-	-- select sd_editdrawtime(56,false,1,'draw_end','13:00:00');
-	if is_edit = true then
-		if (select privilage_level from user_login where account_id = req_by) = any('{0,1}') then  
-			z_query := concat('update drawconfig set ',event_name,E' =\'',event_time,E'\' where draw_id = ',draw__id,'');
-			raise notice 'z_query : %',z_query;
-			
-			execute(z_query);
-			return to_json(concat('{"data":"success","error":null}'));
-		else
-			return to_json(concat('{"data":null,"error":"admin only can edit"}'));
-		end if;
-	else
-		select json_agg(t) from (
-			select draw_id,draw_start,draw_end,delete_end from drawconfig order by draw_id asc
-		)t into z_output;
-		return to_json(concat('{"data":',to_json(z_output),',"error":null}'));
-	end if;
-END;
-$BODY$;
-
+-- v3 added code
 
 
 
@@ -983,32 +307,18 @@ ALTER TABLE sd_winning_history DROP CONSTRAINT sdwh;
 
 
 
-drop table IF EXISTS appsettings;
-drop table IF EXISTS crm_commission;
-drop table IF EXISTS crm_draw;
-drop table IF EXISTS dailtemptable;
-drop table IF EXISTS ticket_controller;
-drop table IF EXISTS timecontroller;
-drop table IF EXISTS winning_check;
-drop table IF EXISTS winning_temp_table;
-drop table IF EXISTS account_statement;
-drop table IF EXISTS timee;
-drop table IF EXISTS account_login_map;
-drop table IF EXISTS draw_type;
-DROP TABLE IF EXISTS DELETE_HISTORY;
-
-
-
-
-
-
-
-
-
-
-
-
-
+DROP TABLE IF EXISTS appsettings;
+DROP TABLE IF EXISTS crm_commission;
+DROP TABLE IF EXISTS crm_draw;
+DROP TABLE IF EXISTS dailtemptable;
+DROP TABLE IF EXISTS ticket_controller;
+DROP TABLE IF EXISTS timecontroller;
+DROP TABLE IF EXISTS winning_check;
+DROP TABLE IF EXISTS winning_temp_table;
+DROP TABLE IF EXISTS account_statement;
+DROP TABLE IF EXISTS timee;
+DROP TABLE IF EXISTS account_login_map;
+DROP TABLE IF EXISTS draw_type;
 
 
 
@@ -1022,6 +332,8 @@ DROP TABLE IF EXISTS PURCHASE_COUNT;
 DROP TABLE IF EXISTS TICKETCONFIG;
 DROP TABLE IF EXISTS BLOCKED_TICKETS;
 DROP TABLE IF EXISTS WINNING_HISTORY;
+DROP TABLE IF EXISTS DELETE_HISTORY;
+DROP TABLE IF EXISTS PROFILE_UPDATE_HISTORY;
 
 
 CREATE TABLE IF NOT EXISTS BLOCKED_TICKETS(S_ID serial,
@@ -1031,7 +343,8 @@ CREATE TABLE IF NOT EXISTS BLOCKED_TICKETS(S_ID serial,
 			ENABLED boolean NOT NULL DEFAULT TRUE);
 
 
-CREATE TABLE IF NOT EXISTS TICKETCONFIG(ACCOUNT_ID bigint, 
+CREATE TABLE IF NOT EXISTS TICKETCONFIG(ACCOUNT_ID bigint,
+					DRAW_ID INT NOT NULL,
 					SINGLE_A integer NOT NULL DEFAULT 2000,
 					SINGLE_B integer NOT NULL DEFAULT 2000,
 					SINGLE_C integer NOT NULL DEFAULT 2000,
@@ -1050,6 +363,7 @@ INSERT INTO BLOCKED_TICKETS(TITLE,B_NUMBERS,MAX_LIMIT)
 
 CREATE TABLE BOOKING_TICKETS(BOOKING_ID BIGSERIAL NOT NULL PRIMARY KEY,
 							D_NAME CHARACTER VARYING(30) NOT NULL,
+							C_NAME CHARACTER VARYING(30),
 							ACCOUNT_ID bigint NOT NULL,
 							DRAW_ID integer NOT NULL,
 							DRAW_TIME CHARACTER VARYING(20) NOT NULL,
@@ -1082,6 +396,7 @@ CREATE TABLE TICKET_TABLE (BOOKING_ID bigint, TICKET_ID BIGSERIAL PRIMARY KEY,
                             DELETED boolean DEFAULT FALSE,
                             PURCHASE_DATE CHARACTER VARYING(15) NOT NULL,
                             WINNING_EXECUTED boolean DEFAULT FALSE,
+							TICKETID_MAP_LIST bigint[] NOT NULL DEFAULT '{}',
                             CONSTRAINT TICKETS_BID
                             FOREIGN KEY (BOOKING_ID) REFERENCES PUBLIC.BOOKING_TICKETS (BOOKING_ID));
 
@@ -1123,6 +438,16 @@ CREATE TABLE DELETE_HISTORY(
 							DELETED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE PROFILE_UPDATE_HISTORY(
+							S_ID SERIAL PRIMARY KEY,
+							UPDATED_BY BIGINT,
+							ACCOUNT_ID  CHARACTER VARYING(20),
+							UPDATE_TYPE CHARACTER VARYING(50),
+							OLD_VALUE CHARACTER VARYING,
+							NEW_VALUE CHARACTER VARYING,
+							UPDATED_AT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 ALTER TABLE winners DROP CONSTRAINT winning_cons;
 
@@ -1134,7 +459,10 @@ declare
 begin
 	for item in select * from user_login where account_id = 56
 	loop
-		insert into TICKETCONFIG(account_id) values(item.account_id);
+		insert into TICKETCONFIG(account_id,draw_id) values(item.account_id,1);
+		insert into TICKETCONFIG(account_id,draw_id) values(item.account_id,2);
+		insert into TICKETCONFIG(account_id,draw_id) values(item.account_id,3);
+		insert into TICKETCONFIG(account_id,draw_id) values(item.account_id,4);
 	end loop;
 end
 $$;
@@ -1156,10 +484,8 @@ BEGIN
         dear_5st_prize_num AS winning_5,
         dear_6st_prize_num AS winning_6
     FROM sd_winning_history;
-    COMMIT;
     RAISE NOTICE 'winning_history Data migration completed successfully!';
 END $$;
-
 
 
 
@@ -1168,14 +494,12 @@ CREATE OR REPLACE FUNCTION public.ext_downlinequery(
 	account__id bigint,
 	req_by bigint,
 	getall boolean,
-	agent_rate boolean
-)
+	agent_rate boolean)
     RETURNS bigint[]
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 DECLARE
     downlines bigint[];
 BEGIN
@@ -1186,7 +510,8 @@ BEGIN
 	IF privilage__level = 3 THEN
 		downlines := ARRAY_APPEND(downlines,req_by);
 	ELSEIF privilage__level = 2 THEN
-		IF agent_rate = TRUE AND account__id IS null THEN
+		-- IF agent_rate = TRUE AND account__id IS null THEN
+		IF agent_rate = TRUE THEN
 			downlines := array_append(downlines,req_by);
 		ELSE
 			SELECT downline FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO downlines;
@@ -1223,8 +548,6 @@ $BODY$;
 
 
 
-
-
 CREATE OR REPLACE FUNCTION public.sd_get_upline(
 	account__id bigint,
 	showmyacc boolean DEFAULT true)
@@ -1232,13 +555,13 @@ CREATE OR REPLACE FUNCTION public.sd_get_upline(
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-	AS $BODY$
-	DECLARE
+AS $BODY$
+DECLARE
 	rec record;
 	ITEM record;
 	plcement__id BIGINT[] :='{}';
 	continueloop boolean := true;
-	BEGIN
+BEGIN
 
 	-- select sd_get_upline(89);
 
@@ -1266,13 +589,13 @@ CREATE OR REPLACE FUNCTION public.ext_checklimit(
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-	AS $BODY$
-	DECLARE
+AS $BODY$
+DECLARE
 	from_date CHARACTER VARYING;
     to_date CHARACTER VARYING;
     dailydraw_check bigint;
     weeklydraw_check bigint;
-	BEGIN
+BEGIN
 
 	-- SELECT ext_checklimit(56,10000000);
 	SELECT date_trunc('week', now() :: TIMESTAMP) :: CHARACTER VARYING INTO from_date;
@@ -1300,8 +623,6 @@ $BODY$;
 
 
 
-
-
 CREATE OR REPLACE FUNCTION PUBLIC.SD_BOOKING_TICKET(
 	ACCOUNT__ID bigint, 
 	DRAWID bigint, 
@@ -1312,10 +633,9 @@ CREATE OR REPLACE FUNCTION PUBLIC.SD_BOOKING_TICKET(
 	RETURNS JSON 
 	LANGUAGE 'plpgsql' 
 	COST 100 
-	VOLATILE PARALLEL UNSAFE AS 
-	$BODY$
-
-	DECLARE
+	VOLATILE PARALLEL UNSAFE 
+AS $BODY$
+DECLARE
 	draw_date CHARACTER VARYING;
 	z_rec RECORD;
 	new_ticket_id bigint;
@@ -1325,7 +645,7 @@ CREATE OR REPLACE FUNCTION PUBLIC.SD_BOOKING_TICKET(
 	bookinglist json[] := '{}';
 	templist json;
 	item bigint;
-	BEGIN
+BEGIN
 
 	--  select sd_booking_ticket(1,3,0,0,0,'null');
 
@@ -1371,7 +691,6 @@ CREATE OR REPLACE FUNCTION PUBLIC.SD_BOOKING_TICKET(
 		bookinglist := array_append(bookinglist,templist);
 	END LOOP;
 	RETURN to_json(concat('{"data":{"ticket_list":',array_to_json(bookinglist),' },"error":null}'));
-
 END
 $BODY$;
 
@@ -1385,28 +704,26 @@ CREATE OR REPLACE FUNCTION PUBLIC.SD_CREATE_TICKET(
 	C__COUNT bigint, 
 	C__AMT double precision, 
 	D__AMT double precision, 
-	CUST__NAME CHARACTER varying, 
 	DRAW__ID bigint, 
 	PURCHASE__DATE CHARACTER varying) 
 	RETURNS JSON 
 	LANGUAGE 'plpgsql' 
 	COST 100 
-	VOLATILE PARALLEL UNSAFE AS 
-	$BODY$
-
-	DECLARE
-		new_ticket_id bigint;
-		purchased_count bigint;
-		bill_details record;
-		p__date character varying;
-		commissioncontroller record;
-		timecontroller record;
-		countcontroller record;
-		accountcontroller int;
-		specialcontroller CHARACTER VARYING [];
-		z_query CHARACTER VARYING;
-		z_column CHARACTER VARYING;
-	BEGIN
+	VOLATILE PARALLEL UNSAFE 
+AS $BODY$
+DECLARE
+	new_ticket_id bigint;
+	purchased_count bigint;
+	bill_details record;
+	p__date character varying;
+	commissioncontroller record;
+	timecontroller record;
+	countcontroller record;
+	accountcontroller int;
+	specialcontroller CHARACTER VARYING [];
+	z_query CHARACTER VARYING;
+	z_column CHARACTER VARYING;
+BEGIN
 
 	-- select SD_CREATE_TICKET(91,1,'DEAR','342','34',340,340,null,3,'null');
 	
@@ -1482,9 +799,8 @@ CREATE OR REPLACE FUNCTION public.sd_check_ticket_availability(
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-	AS $BODY$
-
-	DECLARE
+AS $BODY$
+DECLARE
 		vr_query CHARACTER VARYING;
 		special CHARACTER VARYING [];
 		z_rec RECORD;
@@ -1496,7 +812,7 @@ CREATE OR REPLACE FUNCTION public.sd_check_ticket_availability(
 		timecontroller record;
 		is_sub CHARACTER VARYING:='';
 		is_special boolean := false;
-	BEGIN
+BEGIN
 
 	-- select sd_check_ticket_availability('DEAR',2501,'342',3,92);
 	select * from drawconfig where draw_id = drawid into timecontroller;
@@ -1535,7 +851,7 @@ CREATE OR REPLACE FUNCTION public.sd_check_ticket_availability(
 			vr_query := concat('triple_',LOWER(ticket__type),'');
 		END IF;
 		
-		vr_query := concat('select ',vr_query,' from TICKETCONFIG WHERE ACCOUNT_ID = ',upline__admin,'');
+		vr_query := concat('select ',vr_query,' from TICKETCONFIG WHERE ACCOUNT_ID = ',upline__admin,' AND DRAW_ID = ',drawid,'');
 		EXECUTE(vr_query) INTO max_ticket_limit;
 	END IF;
 	
@@ -1574,6 +890,7 @@ END
 $BODY$;
 
 
+
 CREATE OR REPLACE FUNCTION public.sd_purchasehistory(
 	account__id bigint,
 	from_date character varying,
@@ -1584,13 +901,12 @@ CREATE OR REPLACE FUNCTION public.sd_purchasehistory(
 	req_by bigint,
 	agent_rate boolean,
 	page_no bigint,
-	rows_per_page int
-)
+	rows_per_page int)
     RETURNS json
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-	AS $BODY$
+AS $BODY$
 DECLARE
 	downlines bigint[];
 	privilage__level int;
@@ -1601,7 +917,7 @@ DECLARE
 	overall_data record;
 BEGIN
 
-	-- select sd_purchasehistory(56,'2023-12-29','2023-12-31',4,true,'null',56,true,1,50);
+	-- select sd_purchasehistory(56,'2024-01-07','2024-01-07',4,true,'null',56,true,1,50);
 	IF filters <> 'null' AND filters <> '' THEN 
 		IF filters SIMILAR TO '%(_)%' THEN
 			temp_array := string_to_array(filters, '_');
@@ -1614,20 +930,24 @@ BEGIN
 	SELECT ext_downlinequery(privilage__level,account__id,req_by,getall,agent_rate) INTO downlines;
 	
 	IF page_no = 1 THEN
-		SELECT round((SUM(COALESCE(total_camt,0))) :: numeric, 2) AS total_camt,
-			  round((SUM(COALESCE(total_damt,0))) :: numeric, 2) AS total_damt,
-			  round((SUM(COALESCE(total_count,0))) :: numeric, 2) AS total_count,
-			  count(*) as total_rows_available FROM BOOKING_TICKETS 
-			  WHERE P_DATE BETWEEN from_date AND to_date AND DRAW_ID = draw__id 
-			  AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
-				OR (ACCOUNT_ID = req_by AND agent_rate = FALSE AND sub_purchased = TRUE)
-				OR (ACCOUNT_ID = req_by AND agent_rate = TRUE)OR ACCOUNT_ID <> req_by))
-			  AND DELETED= FALSE INTO overall_data;
+		SELECT round((SUM(COALESCE(C_AMT,0))) :: numeric, 2) AS total_camt,
+			   round((SUM(COALESCE(D_AMT,0))) :: numeric, 2) AS total_damt,
+			   round((SUM(COALESCE(TICKET_COUNT,0))) :: numeric, 2) AS total_count
+				  FROM TICKET_TABLE WHERE BOOKING_ID = ANY(SELECT BOOKING_ID FROM BOOKING_TICKETS 
+				  WHERE P_DATE BETWEEN from_date AND to_date 
+				  AND ((DRAW__ID IS NOT NULL AND DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+				  AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
+					OR (ACCOUNT_ID = req_by AND agent_rate = FALSE AND sub_purchased = TRUE)
+					OR (ACCOUNT_ID = req_by AND agent_rate = TRUE)OR ACCOUNT_ID <> req_by))
+				  AND DELETED= FALSE) 
+				  AND ((temp_array IS NOT NULL AND TICKET_TYPE = ANY(temp_array::character varying[])) OR temp_array IS NULL)
+				  INTO overall_data;
 		
 	END IF;
 	
     FOR item IN SELECT * FROM BOOKING_TICKETS WHERE P_DATE BETWEEN from_date AND to_date 
-				AND DRAW_ID = draw__id AND ACCOUNT_ID = ANY(downlines) AND DELETED= FALSE 
+				AND ((DRAW__ID IS NOT NULL AND DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+				AND ACCOUNT_ID = ANY(downlines) AND DELETED= FALSE 
 				AND ((privilage__level <> 2 OR (ACCOUNT_ID = req_by AND agent_rate = FALSE AND sub_purchased = TRUE)
 					OR (ACCOUNT_ID = req_by AND agent_rate = TRUE)OR ACCOUNT_ID <> req_by))
 				ORDER BY P_DATE ASC
@@ -1635,20 +955,25 @@ BEGIN
 				OFFSET (page_no - 1) * rows_per_page
     LOOP
 		ticketlist := NULL;
-		SELECT ARRAY(SELECT row_to_json(tt) FROM (SELECT * FROM TICKET_TABLE 
+		SELECT ARRAY(SELECT row_to_json(tt) FROM (SELECT ticket_id,ticket_type,ticket_number,
+			ticket_count,c_amt,d_amt FROM TICKET_TABLE 
 			WHERE TICKET_ID = ANY(item.ticket_list::BIGINT[]) AND DELETED = FALSE 
 			AND CASE WHEN temp_array IS NULL THEN TRUE 
 			ELSE TICKET_TYPE = ANY(temp_array::character varying[]) END) AS tt) INTO ticketlist;
-		
-		mainlist = array_append(mainlist, (SELECT json_build_object(
-					'total_c_amt',item.total_camt,
-					'total_d_amt',item.total_damt,
-					'total_count',item.total_count,
-					'bill_id',item.booking_id,
-					'dealer_name',item.d_name,
-					'date',item.p_date,
-					'created_at',item.created_at,
-					'tickets', array_to_json((COALESCE(ticketlist,'{}'))))));
+			
+			IF array_length(ticketlist, 1) IS NULL OR array_length(ticketlist, 1) = 0 THEN
+			ELSE
+				mainlist = array_append(mainlist, (SELECT json_build_object(
+				'total_c_amt',item.total_camt,
+				'total_d_amt',item.total_damt,
+				'total_count',item.total_count,
+				'bill_id',item.booking_id,
+				'dealer_name',item.d_name,
+				'customer_name',item.c_name,
+				'date',item.p_date,
+				'created_at',item.created_at,
+				'tickets', array_to_json((COALESCE(ticketlist,'{}'))))));
+			END IF;
     END LOOP;
 	
 	IF page_no = 1 THEN
@@ -1656,15 +981,12 @@ BEGIN
 							   ',"total_camt":',COALESCE(overall_data.total_camt,0),
 							   ',"total_damt":',COALESCE(overall_data.total_damt,0),
 							   ',"total_count":',COALESCE(overall_data.total_count,0),
-							   ',"total_rows":',COALESCE(overall_data.total_rows_available,0),
 							   '},"error":null}'));
 	ELSE
 		 RETURN to_json(concat ('{"data":{"history":',array_to_json(mainlist),'},"error":null}'));
 	END IF;  
 END 
 $BODY$;
-
-
 
 
 
@@ -1677,14 +999,12 @@ CREATE OR REPLACE FUNCTION public.sd_topcount(
 	filters character varying,
 	req_by bigint,
 	page_no bigint,
-	rows_per_page int
-)
+	rows_per_page int)
     RETURNS json
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 declare
 	downlines bigint[];
 	privilage__level int;
@@ -1772,7 +1092,6 @@ $BODY$;
 
 
 
-
 CREATE OR REPLACE FUNCTION public.sd_executewinning(
 	draw__id bigint,
 	draw__date character varying,
@@ -1788,7 +1107,6 @@ CREATE OR REPLACE FUNCTION public.sd_executewinning(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 DECLARE
 	item RECORD;
 	TEMP CHARACTER VARYING[];
@@ -1984,9 +1302,6 @@ $BODY$;
 
 
 
-
-
-
 CREATE OR REPLACE FUNCTION public.sd_winning_entry(
 	booking__id bigint,
 	ticket__id bigint,
@@ -2015,7 +1330,6 @@ $BODY$;
 
 
 
-
 CREATE OR REPLACE FUNCTION public.sd_dailyreport(
 	account__id bigint,
 	from_date character varying,
@@ -2030,7 +1344,6 @@ CREATE OR REPLACE FUNCTION public.sd_dailyreport(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 declare
 	downlines bigint[];
 	privilage__level int;
@@ -2063,6 +1376,7 @@ begin
         JSONB_BUILD_OBJECT(
             'c_amt', c_amt::numeric,
             'd_amt', d_amt::numeric,
+			'sales',(c_amt::numeric - d_amt::numeric),
             'winning_prize', winning_prize::numeric,
             'winning_commission', winning_commission::numeric,
             'dc_prize', winning_prize + winning_commission,
@@ -2099,7 +1413,6 @@ $BODY$;
 
 
 
-
 CREATE OR REPLACE FUNCTION public.sd_deletebill(
 	account__id bigint,
 	bill__id bigint,
@@ -2110,7 +1423,6 @@ CREATE OR REPLACE FUNCTION public.sd_deletebill(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 DECLARE
 	Z_REC record;
 	Z_DRAW CHARACTER VARYING;
@@ -2163,7 +1475,6 @@ $BODY$;
 
 
 
-
 CREATE OR REPLACE FUNCTION public.sd_winninghistory(
 	account__id bigint,
 	from_date character varying,
@@ -2178,7 +1489,6 @@ CREATE OR REPLACE FUNCTION public.sd_winninghistory(
     COST 100
     VOLATILE PARALLEL UNSAFE
 AS $BODY$
-
 DECLARE
 	vr_ticketmap json;
     z_output json;
@@ -2221,8 +1531,166 @@ BEGIN
 	DROP TABLE IF EXISTS temp_winning_set;
 	
 	return to_json(concat ('{"data":{"history":',COALESCE(vr_ticketmap,'[]'),',"grand_values":',z_output,'},"error":null}'));
-
 END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_time_manage(
+	draw__id integer,
+	account__id bigint,
+	event__name character varying,
+	event__time character varying,
+	is__edit boolean)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+declare
+	z_data json;
+	z_rec record;
+	z_query character varying;
+begin
+	-- select sd_time_manage(1,56,'draw_end','12:52:00',true);
+	-- select sd_time_manage(1,56,'draw_end','22:59:59',false);
+	
+	IF (SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = account__id) != 1 THEN
+		RETURN to_json(concat('{"data":null,"error":"NOT ENOUGH PRIVILAGE TO EDIT"}'));
+	END IF;
+
+	IF is__edit IS TRUE THEN
+		z_query := CONCAT('UPDATE DRAWCONFIG set ',event__name,E' = \'',event__time,E'\' WHERE DRAW_ID = ',draw__id,'');
+		EXECUTE(z_query);
+		
+		z_query := CONCAT('SELECT ',event__name,' FROM DRAWCONFIG WHERE DRAW_ID = ',draw__id,'');
+		EXECUTE(z_query) INTO z_rec;
+		
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(account__id,'All','TIME',CONCAT('',event__name,' : ',z_rec,''),event__time);
+		return to_json(concat('{"data":"Update Success","error":null}'));
+	ELSE
+		SELECT JSON_AGG(t) FROM( SELECT DRAW_START,DELETE_END,DRAW_END FROM DRAWCONFIG 
+				WHERE DRAW_ID = DRAW__ID AND ISDELETED = FALSE )t INTO Z_DATA;
+
+		return to_json(concat('{"data":',to_json(z_data),',"error":null}'));
+	END IF;
+end
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_ticket_manage(
+	draw__id integer,
+	account__id bigint,
+	column__name character varying,
+	column__value bigint,
+	is__edit boolean)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_data json;
+	z_rec record;
+	z_query character varying;
+BEGIN
+	-- select sd_ticket_manage(1,56,'single_a',2001,true);
+
+	IF (SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = account__id) != 1 THEN
+		RETURN to_json(concat('{"data":null,"error":"NOT ENOUGH PRIVILAGE TO EDIT"}'));
+	END IF;
+	
+	IF is__edit IS TRUE THEN
+		z_query := CONCAT('SELECT ',column__name,' FROM TICKETCONFIG WHERE ACCOUNT_ID = ',account__id,' AND DRAW_ID = ',draw__id,'');
+		EXECUTE(z_query) INTO z_rec;
+
+		z_query = concat('UPDATE TICKETCONFIG SET ',column__name,' = ',column__value,' WHERE ACCOUNT_ID = ',account__id,' AND DRAW_ID = ',draw__id,'');
+		execute(z_query);
+
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(account__id,'UNDER','TICKET COUNT',CONCAT('',column__name,' : ',z_rec,''),column__value);
+		return to_json(concat('{"data":"Update Success","error":null}'));
+		return to_json(concat('{"data":"SUCCESSFULLY UPDATED...","error":null}'));
+	ELSE
+		SELECT JSON_AGG(t) FROM (SELECT * FROM TICKETCONFIG WHERE ACCOUNT_ID = account__id AND DRAW_ID = draw__id)t INTO z_data;
+		return to_json(concat('{"data":',to_json(z_data),',"error":null}'));
+	END IF;
+END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_get_admincount(
+	account__id bigint,
+	from_date character varying,
+	to_date character varying,
+	draw__id bigint,
+	getall boolean,
+	req_by bigint)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_commission RECORD;
+	z_data1 jsonb;
+	DOWNLINES bigint[];
+	privilage__level int;
+	result_json jsonb := '{}';
+BEGIN
+
+	-- select sd_get_admincount(187,'2024-01-06','2024-01-07',null,true,'56');
+
+	SELECT DC_SINGLE,DC_DOUBLE,DC_DEAR,DC_BOX FROM USER_DETAILS WHERE ACCOUNT_ID = ACCOUNT__ID INTO Z_COMMISSION;
+	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO privilage__level;
+	SELECT ext_downlinequery(privilage__level,account__id,req_by,getall,false) INTO DOWNLINES;
+	
+	SELECT TO_JSON(t) FROM
+	(SELECT COALESCE(SUM(TICKET_COUNT),0) AS total_count, COALESCE(SUM(C_AMT),0) AS c_amt,
+	 	COALESCE((SUM(TICKET_COUNT) * Z_COMMISSION.DC_SINGLE),0) AS d_amt 
+		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID) WHERE TICKET_TYPE = ANY('{A,B,C}')
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND TICKET_TABLE.DELETED = FALSE AND BOOKING_TICKETS.DELETED = FALSE
+		AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+		AND P_DATE BETWEEN FROM_DATE AND TO_DATE)t INTO z_data1;
+		
+	result_json = jsonb_set(result_json, '{single}', z_data1);
+	
+	SELECT TO_JSON(t) FROM
+		(SELECT COALESCE(SUM(TICKET_COUNT),0) AS total_count, COALESCE(SUM(C_AMT),0) AS c_amt,
+	 	COALESCE((SUM(TICKET_COUNT) * Z_COMMISSION.DC_SINGLE),0) AS d_amt 
+		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID) WHERE TICKET_TYPE = ANY('{AB,BC,AC}')
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND TICKET_TABLE.DELETED = FALSE AND BOOKING_TICKETS.DELETED = FALSE
+		AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+		AND P_DATE BETWEEN FROM_DATE AND TO_DATE)t INTO z_data1;
+		
+	result_json = jsonb_set(result_json, '{double}', z_data1);
+	
+	SELECT TO_JSON(t) FROM
+		(SELECT COALESCE(SUM(TICKET_COUNT),0) AS total_count, COALESCE(SUM(C_AMT),0) AS c_amt,
+	 	COALESCE((SUM(TICKET_COUNT) * Z_COMMISSION.DC_SINGLE),0) AS d_amt 
+		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID) WHERE TICKET_TYPE = ANY('{DEAR}')
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND TICKET_TABLE.DELETED = FALSE AND BOOKING_TICKETS.DELETED = FALSE
+		AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+		AND P_DATE BETWEEN FROM_DATE AND TO_DATE)t INTO z_data1;
+		
+	result_json = jsonb_set(result_json, '{triple_dear}', z_data1);
+	
+	SELECT TO_JSON(t) FROM
+		(SELECT COALESCE(SUM(TICKET_COUNT),0) AS total_count, COALESCE(SUM(C_AMT),0) AS c_amt,
+	 	COALESCE((SUM(TICKET_COUNT) * Z_COMMISSION.DC_SINGLE),0) AS d_amt 
+		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID) WHERE TICKET_TYPE = ANY('{BOX}')
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND TICKET_TABLE.DELETED = FALSE AND BOOKING_TICKETS.DELETED = FALSE
+		AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+		AND P_DATE BETWEEN FROM_DATE AND TO_DATE)t INTO z_data1;
+		
+	result_json = jsonb_set(result_json, '{triple_box}', z_data1);
+	result_json = jsonb_set(result_json, '{values}', to_json(Z_COMMISSION)::jsonb);
+	
+    RETURN to_json(concat('{"data":',to_json(result_json),',"error":null}'));
+END 
 $BODY$;
 
 
@@ -2230,7 +1698,7 @@ $BODY$;
 CREATE OR REPLACE FUNCTION public.lg_updateaccount(
 	account__id bigint,
 	pass_word character varying,
-	privilage__level integer,
+	privilage__level int,
 	daily__limit bigint,
 	weekly__limit bigint,
 	updated_by bigint,
@@ -2239,61 +1707,725 @@ CREATE OR REPLACE FUNCTION public.lg_updateaccount(
     LANGUAGE 'plpgsql'
     COST 100
     VOLATILE PARALLEL UNSAFE
-	AS $BODY$
-	DECLARE
-		rec int;
-		rec1 int;
-		z_item bigint;
+AS $BODY$
+DECLARE
+	rec int;
+	z_record record;
+	z_item bigint;
 BEGIN 
-	-- SELECT lg_updateaccount(99,'null',null,null,null,56,false);
+	-- SELECT lg_updateaccount(187,'null',null,100000,1000000,56,false);
 	
     IF EXISTS(SELECT account_id FROM user_login WHERE account_id = account__id) IS NULL THEN
 	       RETURN to_json(concat('{"data":null,"error":"username not found"}'));
     END IF;
 	
-	SELECT privilage_level FROM user_login WHERE account_id = updated_by INTO rec;
-	SELECT privilage_level FROM user_login WHERE account_id = account__id INTO rec1;
-	
-	IF updated_by = account__id and rec != 0 THEN 
-		RETURN to_json(concat(E'{"data":null,"error":"you can\'t edit your own details"}'));
+	IF updated_by = account__id THEN 
+		RETURN to_json(concat(E'{"data":null,"error":"you cant edit your own details"}'));
 	END IF;
+	
+	SELECT privilage_level FROM user_login WHERE account_id = updated_by INTO rec;
+	SELECT * FROM user_login INNER JOIN USER_DETAILS USING(ACCOUNT_ID) WHERE account_id = account__id INTO z_record;
 
 	IF rec = 3 THEN 
 		RETURN to_json(concat('{"data":null,"error":"Edit Account Access Restricted"}'));
 	END IF;
 	
 	IF rec = 2  AND privilage__level = 1 THEN 
-		RETURN to_json(concat('{"data":null,"error":"you dont have not enough privilage"}'));
+		RETURN to_json(concat('{"data":null,"error":"Sub Admin not enough privilage to edit"}'));
 	END IF;
 
 	IF pass_word != 'null' THEN
 		update user_login set user_password =md5(pass_word) where account_id=account__id;
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+				VALUES(updated_by,account__id,'PROFILE - PASSWORD','',pass_word);
 	END IF;
 
 	IF privilage__level IS NOT NULL THEN
 		update user_login set privilage_level = privilage__level where account_id=account__id;
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(updated_by,account__id,'PROFILE - PRIVILAGE_LEVEL',
+				   z_record.privilage_level::CHARACTER VARYING,privilage__level::CHARACTER VARYING);
 	END IF;
 
 	IF block IS NOT NULL THEN
-		if rec1 = 2 then
-			for z_item in (select account_id from user_details where placement_id = account__id)
+		if z_record.privilage_level = 2 then
+			for z_item in select account_id from user_details where upline_members && z_record.downline::bigint[]
 			loop
+				raise notice '%',z_item;
 				update user_login set user_disabled =block where account_id=z_item;
+				INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+					VALUES(account__id,z_item,'PROFILE - BLOCK - SUBBLOCKED SO BELOW USER BLOCK','',block::CHARACTER VARYING);
+				
 			end loop;
 		end if;
-		update user_login set user_disabled =block where account_id=account__id;
+		update user_login set user_disabled = block where account_id=account__id;
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(updated_by,account__id,'PROFILE - BLOCK', z_record.user_disabled::CHARACTER VARYING,block::CHARACTER VARYING);
 	END IF;
 
 	IF daily__limit IS NOT NULL THEN
 		update user_details set daily_limit =daily__limit where account_id=account__id;
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(updated_by,account__id,'PROFILE - DAILY_LIMIT', 
+				   z_record.daily_limit::CHARACTER VARYING,daily__limit::CHARACTER VARYING);
 	END IF;
 
 	IF weekly__limit IS NOT NULL THEN
 		update user_details set weekly_limit =weekly__limit where account_id=account__id;
+		INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+			VALUES(updated_by,account__id,'PROFILE - WEEKLY_LIMIT', 
+				   z_record.weekly_limit::CHARACTER VARYING,weekly__limit::CHARACTER VARYING);
 	END IF;
 
 	update user_login set updated_at =current_timestamp where account_id=account__id;
 	RETURN to_json(concat('{"data":"success","error":null}'));
-
 END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.lg_createaccount(
+    user__name character varying,
+    pass_word character varying,
+    privilage int,
+    daily__limit bigint,
+    weekly__limit bigint,
+	created_by bigint) 
+	RETURNS json 
+	LANGUAGE 'plpgsql' 
+	COST 100 
+	VOLATILE PARALLEL UNSAFE 
+AS $BODY$ 
+DECLARE 
+    new_account_id BIGINT;
+    z_rec record;
+    z_downline bigint [];
+	PLACEMENT__ID BIGINT = 0;
+	ITEM1 RECORD;
+    UPLINE BIGINT[] := '{}';
+BEGIN
+
+	-- SELECT lg_createaccount('test2','111',1,1000,2000,185);
+	
+    SELECT privilage_level, downline,user_disabled FROM user_login WHERE account_id = created_by INTO z_rec;
+	
+	IF z_rec.user_disabled = true THEN
+		RETURN to_json(concat('{"data":null,"error":"your User Account Disabled"}'));
+	END IF;
+	
+	IF z_rec.privilage_level = 3 THEN
+		RETURN to_json(concat('{"data":null,"error":"Admin or subadmin only can create account"}'));
+	END IF;
+	
+	-- IF z_rec.privilage_level != 1 AND privilage <= z_rec.privilage_level  THEN
+	-- 	RETURN to_json(concat('{"data":null,"error":"SubAdmin cant Create Another Admin"}'));
+	-- END IF;
+	
+	IF exists(SELECT account_id FROM user_login WHERE user_name = user__name) = true THEN
+		RETURN to_json(concat('{"data":null,"error":"User Already Exist"}'));
+	END IF;
+
+	INSERT INTO user_login(user_name,user_password,privilage_level,created_at)
+		VALUES(user__name,md5(pass_word),privilage,CURRENT_TIMESTAMP) 
+		returning account_id INTO new_account_id;
+		
+	UPLINE := '{}';
+	UPLINE := array_append(UPLINE, new_account_id);
+	PLACEMENT__ID = created_by;
+	IF PLACEMENT__ID != 0 and ((select privilage_level from user_login where account_id = PLACEMENT__ID) != 1) THEN
+		UPLINE := array_append(UPLINE, PLACEMENT__ID);
+	END IF;
+	WHILE PLACEMENT__ID != 0 LOOP
+		select placement_id from user_details where account_id = PLACEMENT__ID INTO ITEM1;
+		PLACEMENT__ID = ITEM1.placement_id;
+		IF PLACEMENT__ID != 0 AND ((select privilage_level from user_login where account_id = PLACEMENT__ID) != 1)  THEN
+			UPLINE := array_append(UPLINE, PLACEMENT__ID);
+		END IF;
+	END LOOP;
+	-- 	RAISE NOTICE 'UPLINE LIST: %',UPLINE;
+
+	INSERT INTO user_details(account_id,placement_id,daily_limit,weekly_limit,upline_members) 
+		VALUES (new_account_id,created_by,daily__limit,weekly__limit,UPLINE) 
+		returning account_id INTO new_account_id;
+
+	IF new_account_id IS NULL THEN 
+		RETURN to_json(concat('{"data":null,"error":"Account Creation Failed"}'));
+	ELSE
+		z_downline := z_rec.downline;
+		z_downline := array_append(z_downline, new_account_id);
+		UPDATE user_login SET downline = z_downline WHERE  account_id = created_by;
+		
+		IF privilage = 1 THEN
+			insert into TICKETCONFIG(account_id,draw_id) values(new_account_id,1);
+			insert into TICKETCONFIG(account_id,draw_id) values(new_account_id,2);
+			insert into TICKETCONFIG(account_id,draw_id) values(new_account_id,3);
+			insert into TICKETCONFIG(account_id,draw_id) values(new_account_id,4);
+		END IF;
+		RETURN to_json(concat('{"data":{"msg":"Account Creation Success","account_id":',new_account_id,'},"error":null}'));
+	END IF;
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.lg_auth(
+    user__name character varying,
+    pass_word character varying,
+    ip__address character varying,
+    app__version character varying
+	) 
+	RETURNS json 
+	LANGUAGE 'plpgsql' 
+	COST 100 
+	VOLATILE PARALLEL UNSAFE 
+AS $BODY$ 
+DECLARE 
+    user_details RECORD;
+    my_session_id BIGINT;
+    z_data json;
+BEGIN
+
+	-- SELECT lg_auth('admin','111','192.168.1.111','1');
+	
+    IF (app__version :: numeric < (SELECT events FROM appconfig WHERE event_name = 'min_version') :: numeric) THEN 
+        RETURN to_json(concat('{"data":null,"error":"app is outdated-',(SELECT events FROM appconfig WHERE event_name = 'app_name'),'_',
+							  (SELECT events FROM appconfig WHERE event_name = 'latest_version'),'.apk"}'));
+    END IF;
+
+    SELECT * FROM user_login
+        WHERE REPLACE(lower(user_name), ' ', '') = REPLACE(lower(user__name), ' ', '') 
+        AND user_password = md5(pass_word) INTO user_details;
+
+    IF user_details IS NULL THEN
+        RETURN to_json(concat('{"data":null,"error":"Wrong Password"}'));
+    END IF;
+	
+	IF user_details.user_disabled = TRUE THEN 
+        RETURN to_json(concat('{"data":null,"error":"User not found or disabled!"}'));
+    END IF;
+
+    INSERT INTO user_session(account_id, ip_address)
+        VALUES(user_details.account_id, ip__address :: cidr) 
+        RETURNING session_id INTO my_session_id;
+
+    SELECT json_build_object(
+            'account_id',user_details.account_id,
+            'session_id',my_session_id,
+            'privilage_level',user_details.privilage_level,
+            'username',user_details.user_name) INTO z_data;
+
+    RETURN to_json(concat('{"data":', z_data, ',"error":null}'));
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_draw(
+	account__id bigint,
+	one__pm boolean,
+    three__pm boolean,
+    six__pm boolean,
+    eight__pm boolean,
+    isedit boolean,
+	updated_by bigint)
+	RETURNS json
+	LANGUAGE 'plpgsql'
+	COST 100
+	VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_data json;
+	z_rec record;
+	vr_rec record;
+	z_temp json[] := '{}';
+	item bigint;
+	z_query character varying;
+	z_output json;
+BEGIN
+
+	-- select sd_draw(76,false,false,false,false,false,56);
+	-- select sd_draw(76,true,false,false,false,true,56);
+	
+	IF isedit = true THEN
+		SELECT privilage_level FROM user_login WHERE account_id = updated_by INTO z_rec;
+		IF z_rec.privilage_level = 3 THEN
+			RETURN to_json(concat('{"data":null,"error":"Admin or subadmin only can Edit values"}'));
+		END IF;
+		
+		SELECT privilage_level FROM user_login 
+		WHERE case when account__id is null then true else account_id = account__id end INTO z_rec;
+
+		IF z_rec.privilage_level = 1 THEN
+			RETURN to_json(concat('{"data":null,"error":"cant disable draw for admin"}'));
+		ELSE
+			UPDATE user_details SET draw_1 = one__pm, draw_2 = three__pm, draw_3 = six__pm, draw_4 = eight__pm
+				WHERE account_id = account__id;
+			RETURN to_json(concat('{"data":"success","error":null}'));
+		END IF;
+	END IF;
+	
+	FOR item IN select draw_id from  drawconfig order by draw_id asc
+	LOOP
+		z_query := concat('SELECT draw_id,draw_time,color,draw_type,current_timestamp::date as date
+						  FROM user_details CROSS JOIN drawconfig 
+						  WHERE account_id=',account__id,' and draw_id =',item,' and draw_',item,'= true');
+		RAISE NOTICE 'z_query : %',z_query;
+		EXECUTE(z_query) INTO z_rec;
+		IF z_rec.draw_id IS NOT NULL THEN
+			SELECT to_json(z_rec) into z_output;
+			z_temp :=array_append(z_temp,z_output);
+		END IF;
+	END LOOP;
+	RETURN to_json(concat('{"data":',array_to_json(z_temp),',"error":null}'));
+END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_getcommission(
+	account__id bigint)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+declare
+	z_data json='{}';
+begin
+	
+	-- SELECT sd_get_commission(56);
+
+	IF exists(SELECT account_id FROM user_login WHERE account_id = account__id) = false THEN
+		RETURN to_json(concat('{"data":null,"error":"User Not Found!"}'));
+	END IF;
+	
+	select row_to_json(t) FROM(
+	select dc_single,dc_double,dc_dear,dc_box,current_timestamp::date as date from user_details where account_id = account__id
+	) t into z_data;
+	return to_json(concat('{"data":',z_data,',"error":null}'));
+end
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_getdownlist(
+	account__id bigint,
+	showmyacc boolean)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_placement__id BIGINT[];
+	z_output json := '[]';
+	__temp json;
+	item bigint;
+	z_rec record;
+BEGIN
+	select sd_getdownfloor(account__id,showmyacc) into z_placement__id;
+	raise notice 'oooof%',z_placement__id;
+
+	select json_agg(t) from (
+		select account_id,user_name,privilage_level from user_login 
+		where account_id =ANY(z_placement__id) order by account_id desc
+	)t into z_output;
+	
+	if z_output is null then 
+		z_output='[]';
+	end if;
+	return to_json(concat('{"data":',to_json(z_output),',"error":null}'));
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_getdownfloor(
+	account__id bigint,
+	showmyacc boolean DEFAULT true)
+    RETURNS bigint[]
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	rec record;
+	plcement__id BIGINT[] :='{}';
+BEGIN
+	-- select sd_getdownfloor(56,true);
+
+	SELECT privilage_level,downline FROM user_login WHERE account_id=account__id INTO rec;
+	
+	IF rec.privilage_level != 3 THEN
+		plcement__id := rec.downline;
+	END IF;
+	
+	IF showmyacc = true THEN
+		plcement__id := ARRAY[account__id] || plcement__id;
+	END IF;
+	
+	
+	RETURN plcement__id;
+END;	
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.ext_checklimit(
+	account__id bigint,
+	d_amt double precision,
+	purchase_date character varying default CURRENT_DATE)
+    RETURNS character varying
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	from_date CHARACTER VARYING;
+    to_date CHARACTER VARYING;
+    dailydraw_check bigint;
+    weeklydraw_check bigint;
+BEGIN
+
+	-- SELECT ext_checklimit(56,10000000);
+	SELECT date_trunc('week', now() :: TIMESTAMP) :: CHARACTER VARYING INTO from_date;
+	SELECT (date_trunc('week', now() :: TIMESTAMP) + INTERVAL '6 DAY') :: CHARACTER VARYING INTO to_date;
+	
+	select COALESCE(sum(c_amt),0) from booking_ticket where 
+						dealer_account_id = account__id and p_date = purchase_date 
+						and isdeleted=false into dailydraw_check;
+
+	IF (dailydraw_check + d_amt >= (select daily_limit from user_details where account_id = account__id)) THEN 
+		RETURN 'daily limit reached';
+	END IF;
+
+	select COALESCE(sum(c_amt),0) from booking_ticket where 
+						dealer_account_id = account__id and p_date between from_date and to_date
+						and isdeleted=false into weeklydraw_check;
+
+	IF (weeklydraw_check + d_amt >= (select weekly_limit from user_details where account_id = account__id)) THEN
+		RETURN 'weekly limit reached';
+	END IF;
+	
+	RETURN '';
+END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_update_winningcommission(
+	account__id bigint,
+	updated__by bigint,
+	wc__dear_1 numeric,
+	wc__dear_2 numeric,
+	wc__dear_3 numeric,
+	wc__dear_4 numeric,
+	wc__dear_5 numeric,
+	wc__dear_6 numeric,
+	wc__single_1 numeric,
+	wc__double_1 numeric,
+	wc__box_same1 numeric,
+	wc__box_both1 numeric,
+	wc__box_both2 numeric,
+	wc__box_shuffle1 numeric,
+	wc__box_shuffle2 numeric,
+	block boolean
+ )
+	RETURNS json
+	LANGUAGE 'plpgsql'
+	COST 100
+	VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	Z_RECORD CHARACTER VARYING;
+BEGIN
+
+	-- SELECT sd_update_winningcommission(88,56,5000,500, 251,100, 50,20,100, 700,7000 ,3800,1600,3000, 800,false);
+	
+	IF (NOT EXISTS(SELECT * FROM USER_DETAILS WHERE ACCOUNT_ID = account__id)) THEN
+		RETURN to_json(concat('{"data":null,"error":"USER NOT EXIST"}'));
+	END IF;
+
+	IF (SELECT privilage_level FROM user_login WHERE account_id = updated__by) = 3 THEN
+		RETURN to_json(concat('{"data":null,"error":"NOT ENOUGH PRIVILAGE"}'));
+	END IF;
+	
+	UPDATE user_details SET wc_dear_1=wc__dear_1,
+							wc_dear_2=wc__dear_2,
+							wc_dear_3=wc__dear_3,
+							wc_dear_4=wc__dear_4,
+							wc_dear_5=wc__dear_5,
+							wc_dear_6=wc__dear_6,
+							wc_single_1=wc__single_1,
+							wc_double_1=wc__double_1,
+							wc_box_same1=wc__box_same1,
+							wc_box_both1=wc__box_both1,
+							wc_box_both2=wc__box_both2,
+							wc_box_shuffle1=wc__box_shuffle1,
+							wc_box_shuffle2=wc__box_shuffle2,
+							block_winning = block 
+						WHERE account_id=account__id;
+	
+	SELECT CONCAT('wc_dear_1: ', wc_dear_1,', wc_dear_2: ', wc_dear_2,', wc_dear_3: ', wc_dear_3,
+		', wc_dear_4: ', wc_dear_4,', wc_dear_5: ', wc_dear_5,', wc_dear_6: ', wc_dear_6,', wc_single_1: ', wc_single_1,
+		', wc_double_1: ', wc_double_1,', wc_box_same1: ', wc_box_same1,', wc_box_both1: ', wc_box_both1,
+		', wc_box_both2: ', wc_box_both2,', wc_box_shuffle1: ', wc_box_shuffle1,', wc_box_shuffle2: ', wc_box_shuffle2,'')
+		FROM user_details WHERE ACCOUNT_ID = account__id INTO Z_RECORD;
+						
+	INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+		VALUES(updated__by,account__id,'WINNING COMMISSION',Z_RECORD,CONCAT(
+		'wc_dear_1: ', wc__dear_1,', wc_dear_2: ', wc__dear_2,', wc_dear_3: ', wc__dear_4,', wc_dear_4: ', wc__dear_4,
+		', wc_dear_5: ', wc__dear_5,', wc_dear_6: ', wc__dear_6,', wc_single_1: ', wc__single_1,', wc_double_1: ', wc__double_1,
+		', wc_box_same1: ', wc__box_same1,', wc_box_both1: ', wc__box_both1,', wc_box_both2: ', wc__box_both2,
+		', wc_box_shuffle1: ', wc__box_shuffle1,', wc_box_shuffle2: ', wc__box_shuffle2,''));
+						
+	RETURN to_json(concat('{"data":"success","error":null}'));
+	END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_update_winningprize(
+	account__id bigint,
+	updated__by bigint,
+	wp__dear_1 numeric,
+	wp__dear_2 numeric,
+	wp__dear_3 numeric,
+	wp__dear_4 numeric,
+	wp__dear_5 numeric,
+	wp__dear_6 numeric,
+	wp__single_1 numeric,
+	wp__double_1 numeric,
+	wp__box_same1 numeric,
+	wp__box_both1 numeric,
+	wp__box_both2 numeric,
+	wp__box_shuffle1 numeric,
+	wp__box_shuffle2 numeric)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	privilage integer;
+	Z_RECORD CHARACTER VARYING;
+BEGIN
+	-- SELECT sd_update_winningprize(193,56,5000,500, 251,100, 50,20,100, 700,7000 ,3800,1600,3000, 800);
+	
+	select privilage_level from user_login where account_id = updated__by into privilage;
+	
+	if (select privilage = any('{3,6}')) then
+		return to_json(concat('{"data":null,"error":"unable to edit"}'));
+	end if;
+	
+	UPDATE user_details SET wp_dear_1 = wp__dear_1,
+						wp_dear_2 = wp__dear_2,
+						wp_dear_3 = wp__dear_3,
+						wp_dear_4 = wp__dear_4,
+						wp_dear_5 = wp__dear_5,
+						wp_dear_6 = wp__dear_6,
+						wp_single_1 = wp__single_1,
+						wp_double_1 = wp__double_1,
+						wp_box_same1 = wp__box_same1,
+						wp_box_both1 = wp__box_both1,
+						wp_box_both2 = wp__box_both2,
+						wp_box_shuffle1 = wp__box_shuffle1,
+						wp_box_shuffle2 = wp__box_shuffle2
+					where account_id=account__id;
+	
+	SELECT CONCAT('wp_dear_1: ', wp_dear_1,', wp_dear_2: ', wp_dear_2,
+		', wp_dear_3: ', wp_dear_3,', wp_dear_4: ', wp_dear_4,', wp_dear_5: ', wp_dear_5,
+		', wp_dear_6: ', wp_dear_6,', wp_single_1: ', wp_single_1,', wp_double_1: ', wp_double_1,
+		', wp_box_same1: ', wp_box_same1,', wp_box_both1: ', wp_box_both1,', wp_box_both2: ', wp_box_both2,
+		', wp_box_shuffle1: ', wp_box_shuffle1,', wp_box_shuffle2: ', wp_box_shuffle2,'')
+		FROM user_details WHERE ACCOUNT_ID = account__id INTO Z_RECORD;
+	
+	INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+		VALUES(updated__by,account__id,'WINNING PRIZE',Z_RECORD,CONCAT('wp_dear_1: ', wp__dear_1,', wp_dear_2: ', wp__dear_2,', wp_dear_3: ', wp__dear_4,', wp_dear_4: ', wp__dear_4,
+	', wp_dear_5: ', wp__dear_5,', wp_dear_6: ', wp__dear_6,', wp_single_1: ', wp__single_1,', wp_double_1: ', wp__double_1,
+	', wp_box_same1: ', wp__box_same1,', wp_box_both1: ', wp__box_both1,', wp_box_both2: ', wp__box_both2,
+	', wp_box_shuffle1: ', wp__box_shuffle1,', wp_box_shuffle2: ', wp__box_shuffle2,''));
+
+	return to_json(concat('{"data":"success","error":null}'));
+	END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_profiledetails(
+	account__id bigint)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+declare
+	z_data json;
+	z_rec record;
+begin
+
+	-- select sd_profiledetails(56);
+
+	if account__id is null or not Exists(select account_id from user_login where account_id = account__id) then 
+		return to_json(concat('{"data":null,"error":"User not found"}'));
+	end if;
+	
+	select row_to_json(t) from (
+		select * from user_details inner join user_login using(account_id) where user_login.account_id = account__id
+	)t into z_data;
+	
+	return to_json(concat('{"data":',to_json(z_data),',"error":null}'));
+end
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_winningresult(
+	from_date character varying,
+	to_date character varying,
+	draw__id integer)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_output json := '{}';
+BEGIN
+    -- select sd_winningresult('2023-11-01','2023-11-01',4);
+
+	SELECT JSON_AGG(t) FROM (
+			SELECT * FROM SD_WINNING_HISTORY WHERE IS_DELETE = FALSE 
+				AND DRAW_DATE BETWEEN from_date AND to_date
+				AND ((DRAW__ID IS NOT NULL AND DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
+		)t INTO z_output;
+
+	RETURN to_json(concat ('{"data":{"history":', COALESCE(z_output,'[]') ,'},"error":null}'));	
+END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_addcommission(
+	account__id bigint,
+	c_single double precision,
+	c_double double precision,
+	c_dear double precision,
+	c_box double precision,
+	req_by bigint
+	)
+	RETURNS json
+	LANGUAGE 'plpgsql'
+	COST 100
+	VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	Z_RECORD CHARACTER VARYING;
+BEGIN
+	-- select sd_addcommission(193,0,0,2,0,56);
+	if not exists(select account_id from user_login where account_id=account__id) then
+		return to_json(concat('{"data":null,"error":"User Not Found"}'));
+	end if;
+	
+	SELECT CONCAT('dc_single: ', dc_single,', dc_double: ', dc_double,', dc_dear: ', dc_dear,', dc_box: ', dc_box)
+	FROM user_details WHERE ACCOUNT_ID = account__id INTO Z_RECORD;
+	
+	INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+		VALUES(req_by,account__id,'PURCHASE COMMISSION',Z_RECORD,CONCAT(
+        'dc_single: ', c_single,', dc_double: ', c_double,', dc_dear: ', c_dear,', dc_box: ', c_box));
+	
+	update user_details set dc_single = c_single,dc_double = c_double,
+		dc_dear = c_dear,dc_box = c_box where account_id=account__id;
+
+	return to_json(concat('{"data":"success","error":null}'));	
+END;
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_editdrawtime(
+	req_by bigint,
+	is_edit boolean,
+	draw__id int,
+	event_name character varying,
+	event_time character varying)
+	RETURNS json
+	LANGUAGE 'plpgsql'
+	COST 100
+	VOLATILE PARALLEL UNSAFE
+AS $BODY$
+declare
+	z_query character varying;
+	Z_RECORD character varying;
+	z_output json := '{}';
+BEGIN
+	-- select sd_editdrawtime(56,true,1,'draw_end','13:00:00');
+	-- select sd_editdrawtime(56,false,1,'draw_end','13:00:00');
+	if is_edit = true then
+		if (select privilage_level from user_login where account_id = req_by) = any('{0,1}') then
+			z_query := concat('SELECT ',event_name,' FROM DRAWCONFIG WHERE draw_id = ',draw__id,'');
+			execute(z_query) INTO Z_RECORD;
+			
+			INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+				VALUES(req_by,'All','DRAW_TIME',(CONCAT('',event_name,' - ',Z_RECORD,'')),
+					   (CONCAT('',event_name,' - ',event_time,'')));
+			z_query := concat('update drawconfig set ',event_name,E' =\'',event_time,E'\' where draw_id = ',draw__id,'');
+			raise notice 'z_query : %',z_query;
+			
+			execute(z_query);
+			return to_json(concat('{"data":"success","error":null}'));
+		else
+			return to_json(concat('{"data":null,"error":"admin only can edit"}'));
+		end if;
+	else
+		select json_agg(t) from (
+			select draw_id,draw_start,draw_end,delete_end from drawconfig order by draw_id asc
+		)t into z_output;
+		return to_json(concat('{"data":',to_json(z_output),',"error":null}'));
+	end if;
+END;
+$BODY$;
+
+
+CREATE OR REPLACE FUNCTION public.sd_appversions(
+	event_id integer,
+	keyname character varying,
+	keyvalue character varying,
+	isedit boolean,
+	req_by bigint)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	z_query character varying;
+	Z_RECORD character varying;
+	z_output json := '{}';
+BEGIN
+
+	-- SELECT sd_appversions(0,'','',false,56);	
+	IF ISEDIT = true THEN
+		IF(SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = REQ_BY) = ANY('{0,1}') THEN
+			z_query := concat('SELECT EVENTS FROM APPCONFIG WHERE EVENT_ID = ',event_id,'');
+			execute(z_query) INTO Z_RECORD;
+			
+			INSERT INTO PROFILE_UPDATE_HISTORY(UPDATED_BY,ACCOUNT_ID,UPDATE_TYPE,OLD_VALUE,NEW_VALUE)
+				VALUES(REQ_BY,'All','APP_VERSION',(CONCAT('',keyname,' - ',Z_RECORD,'')),
+					   (CONCAT('',keyname,' - ',keyvalue,'')));
+			z_query := concat('UPDATE APPCONFIG SET ',keyname,E' =\'',keyvalue,E'\' WHERE EVENT_ID = ',event_id,'');
+			raise notice 'z_query : %',z_query;
+			
+			execute(z_query);
+			return to_json(concat('{"data":"success","error":null}'));
+		else
+			return to_json(concat('{"data":null,"error":"admin only can edit"}'));
+		end if;
+	else
+		SELECT JSON_AGG(t) FROM (
+		SELECT * FROM APPCONFIG WHERE APPCONFIG.EVENT_ID <>2 ORDER BY EVENT_ID ASC
+		)t INTO z_output;
+		return to_json(concat('{"data":',to_json(z_output),',"error":null}'));
+	end if;
+END;	
 $BODY$;
