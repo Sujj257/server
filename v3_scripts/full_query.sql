@@ -319,6 +319,7 @@ DROP TABLE IF EXISTS account_statement;
 DROP TABLE IF EXISTS timee;
 DROP TABLE IF EXISTS account_login_map;
 DROP TABLE IF EXISTS draw_type;
+DROP TABLE IF EXISTS sd_winning_commission;
 
 
 
@@ -1044,7 +1045,9 @@ begin
         AND ((FILTERS IS NOT NULL AND LENGTH(TICKET_NUMBER) = FILTERS::INT) 
             OR FILTERS IS NULL)
         AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
-    	GROUP BY TICKET_NUMBER, TICKET_TYPE) AS subquery;
+    	GROUP BY TICKET_NUMBER, TICKET_TYPE
+		LIMIT rows_per_page
+		OFFSET (page_no - 1) * rows_per_page) AS subquery;
 		
 	result_json = jsonb_set(result_json, '{history}', result_array);
 	
@@ -2429,3 +2432,27 @@ BEGIN
 	end if;
 END;	
 $BODY$;
+
+
+
+
+delete from ticket_table;
+delete from booking_tickets;
+DROP TABLE IF EXISTS sd_winning_commission;
+DROP TABLE IF EXISTS sub_winners;
+DROP TABLE IF EXISTS sub_tickets;
+DROP TABLE IF EXISTS sub_booking_ticket;
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS booking_ticket;
+delete from user_session;
+delete from winners;
+delete from purchase_count;
+
+CREATE INDEX user_login_accountid ON user_login(account_id);
+CREATE INDEX user_details_accountid ON user_details(account_id);
+CREATE INDEX booking_tickets_1 ON booking_tickets(account_id,p_date,deleted);
+CREATE INDEX booking_tickets_2 ON booking_tickets(booking_id);
+CREATE INDEX booking_tickets_3 ON booking_tickets(account_id,DRAW_ID,p_date,deleted);
+CREATE INDEX ticket_table_1 ON TICKET_TABLE(ticket_type,draw_id,ticket_number,deleted);
+CREATE INDEX ticket_table_2 ON TICKET_TABLE(ticket_id);
+CREATE INDEX ticket_table_3 ON TICKET_TABLE(ticket_id,deleted);
