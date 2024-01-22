@@ -1045,9 +1045,7 @@ begin
         AND ((FILTERS IS NOT NULL AND LENGTH(TICKET_NUMBER) = FILTERS::INT) 
             OR FILTERS IS NULL)
         AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
-    	GROUP BY TICKET_NUMBER, TICKET_TYPE
-		LIMIT rows_per_page
-		OFFSET (page_no - 1) * rows_per_page) AS subquery;
+    	GROUP BY TICKET_NUMBER, TICKET_TYPE) AS subquery;
 		
 	result_json = jsonb_set(result_json, '{history}', result_array);
 	
@@ -2094,17 +2092,17 @@ BEGIN
 	SELECT date_trunc('week', now() :: TIMESTAMP) :: CHARACTER VARYING INTO from_date;
 	SELECT (date_trunc('week', now() :: TIMESTAMP) + INTERVAL '6 DAY') :: CHARACTER VARYING INTO to_date;
 	
-	select COALESCE(sum(c_amt),0) from booking_ticket where 
-						dealer_account_id = account__id and p_date = purchase_date 
-						and isdeleted=false into dailydraw_check;
+	select COALESCE(sum(total_camt),0) from booking_tickets where 
+						account_id = account__id and p_date = purchase_date 
+						and deleted=false into dailydraw_check;
 
 	IF (dailydraw_check + d_amt >= (select daily_limit from user_details where account_id = account__id)) THEN 
 		RETURN 'daily limit reached';
 	END IF;
 
-	select COALESCE(sum(c_amt),0) from booking_ticket where 
-						dealer_account_id = account__id and p_date between from_date and to_date
-						and isdeleted=false into weeklydraw_check;
+	select COALESCE(sum(total_camt),0) from booking_tickets where 
+						account_id = account__id and p_date between from_date and to_date
+						and deleted=false into weeklydraw_check;
 
 	IF (weeklydraw_check + d_amt >= (select weekly_limit from user_details where account_id = account__id)) THEN
 		RETURN 'weekly limit reached';
