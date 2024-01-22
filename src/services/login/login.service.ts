@@ -16,13 +16,14 @@ export class LoginService {
   async checkuser(payload: LoginDto) {
     try {
       const queryResponse = await this.db.executeFunc(
-        'select lg_auth($1,$2,$3,$4)',
+        'select lg_auth($1,$2,$3,$4,$5)',
         'lg_auth',
         [
           payload.username,
           payload.password,
           payload.ipaddress,
           payload.version,
+          payload.admin_login,
         ],
       );
       if (queryResponse.error === null) {

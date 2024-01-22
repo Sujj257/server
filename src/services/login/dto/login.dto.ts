@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
 
 export class LoginDto {
   @IsString()
@@ -33,4 +33,12 @@ export class LoginDto {
     example: '3.7',
   })
   version: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'admin_login',
+    example: 'false',
+  })
+  admin_login: boolean;
 }

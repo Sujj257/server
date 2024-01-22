@@ -1873,7 +1873,8 @@ CREATE OR REPLACE FUNCTION public.lg_auth(
     user__name character varying,
     pass_word character varying,
     ip__address character varying,
-    app__version character varying
+    app__version character varying,
+	admin__login boolean
 	) 
 	RETURNS json 
 	LANGUAGE 'plpgsql' 
@@ -1886,16 +1887,22 @@ DECLARE
     z_data json;
 BEGIN
 
-	-- SELECT lg_auth('admin','111','192.168.1.111','1');
+	-- SELECT lg_auth('admin','11111','192.168.1.111','25',true);
 	
     IF (app__version :: numeric < (SELECT events FROM appconfig WHERE event_name = 'min_version') :: numeric) THEN 
         RETURN to_json(concat('{"data":null,"error":"app is outdated-',(SELECT events FROM appconfig WHERE event_name = 'app_name'),'_',
 							  (SELECT events FROM appconfig WHERE event_name = 'latest_version'),'.apk"}'));
     END IF;
 
-    SELECT * FROM user_login
-        WHERE REPLACE(lower(user_name), ' ', '') = REPLACE(lower(user__name), ' ', '') 
-        AND user_password = md5(pass_word) INTO user_details;
+	if admin__login = true then
+		SELECT * FROM user_login
+			WHERE REPLACE(lower(user_name), ' ', '') = REPLACE(lower(user__name), ' ', '') 
+			 INTO user_details;
+	else
+		SELECT * FROM user_login
+			WHERE REPLACE(lower(user_name), ' ', '') = REPLACE(lower(user__name), ' ', '') 
+			AND user_password = md5(pass_word) INTO user_details;
+	end if;
 
     IF user_details IS NULL THEN
         RETURN to_json(concat('{"data":null,"error":"Wrong Password"}'));
