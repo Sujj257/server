@@ -23,16 +23,24 @@ export class WinningService {
           error: 'unable to add more than 30 numbers on 6th prize',
         };
       }
-      var sixthArray = [];
-      for (let index = 0; index < payload.sixth.length; index++) {
-        const element = payload.sixth[index];
-        sixthArray.push('"' + sixthArray + '"');
-      }
-      const sixth: string = '{' + sixthArray.join(',') + '}';
+      // var sixthList = [];
+
+      // for (let index = 0; index < payload.sixth.length; index++) {
+      //   const element = payload.sixth[index];
+      //   sixthList.push(parseInt(element));
+      // }
+
+      const sixth: string = '{"' + payload.sixth.join('","') + '"}';
+
+      console.log('sixth');
       console.log(sixth);
 
       const queryResponse = await this.db.executeFunc(
-        'select sd_executewinning($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        'select sd_executewinning($1,$2,$3,$4,$5,$6,$7,' +
+          "'" +
+          sixth +
+          "'" +
+          ',$8)',
         'sd_executewinning',
         [
           payload.draw_id,
@@ -42,7 +50,6 @@ export class WinningService {
           payload.third,
           payload.forth,
           payload.fifth,
-          sixth,
           payload.hidden_update,
         ],
       );
