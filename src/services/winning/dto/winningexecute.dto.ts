@@ -64,7 +64,7 @@ export class WinningExecuteDto {
     description: 'sixth',
     example: ['235', '765'],
   })
-  sixth: Array<string>;
+  sixth: Array<number>;
 
   @IsBoolean()
   @ApiPropertyOptional({
