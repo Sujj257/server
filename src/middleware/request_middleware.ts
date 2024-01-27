@@ -15,8 +15,6 @@ import { Cryptography } from 'src/interceptor/encryption';
 @Injectable()
 export class DecryptionInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    console.log('sssssssssssssssss');
-
     const request = context.switchToHttp().getRequest();
     console.log(request.body);
     if (request.method.toString() != 'GET') {

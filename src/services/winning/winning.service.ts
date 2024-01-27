@@ -10,14 +10,13 @@ import { WinningExecuteDto } from './dto/winningexecute.dto';
 
 @Injectable()
 export class WinningService {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   async WinningExecute(
     payload: WinningExecuteDto,
     sessionpayload: SessionPayloadDto,
   ) {
     try {
-
       if (payload.sixth.length > 30) {
         return {
           data: null,
@@ -27,7 +26,7 @@ export class WinningService {
       const sixth: string = '{' + payload.sixth.join(',') + '}';
 
       const queryResponse = await this.db.executeFunc(
-        'select sd_executewinning($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+        'select sd_executewinning($1,$2,$3,$4,$5,$6,$7,$8,$9)',
         'sd_executewinning',
         [
           payload.draw_id,
@@ -38,7 +37,6 @@ export class WinningService {
           payload.forth,
           payload.fifth,
           sixth,
-          1,
           payload.hidden_update,
         ],
       );
