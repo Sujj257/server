@@ -70,7 +70,7 @@ export class WinningService {
       const draw_id: number = nulltransform(payload.draw_id, true);
 
       const queryResponse = await this.db.executeFunc(
-        'select sd_get_winningdetails($1,$2,$3,$4,$5)',
+        'select sd_get_winningdetails($1,$2,$3,$4,$5,$6)',
         'sd_get_winningdetails',
         [
           payload.account_id,
@@ -78,6 +78,7 @@ export class WinningService {
           draw_id,
           payload.ticket_type,
           payload.number,
+          payload.agent_rate,
         ],
       );
       return queryResponse;

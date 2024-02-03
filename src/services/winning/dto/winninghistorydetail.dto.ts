@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class WinningDetailViewDto {
   @IsString()
@@ -41,4 +41,12 @@ export class WinningDetailViewDto {
     example: '345',
   })
   number: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'agent_rate',
+    example: false,
+  })
+  agent_rate: boolean;
 }

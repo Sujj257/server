@@ -33,6 +33,7 @@ DROP FUNCTION IF EXISTS public.lg_updateaccount(integer, bigint, character varyi
 DROP FUNCTION IF EXISTS public.sd_booking_ticket(integer, bigint, bigint, double precision, double precision, bigint, character varying);
 DROP FUNCTION IF EXISTS public.sd_check_ticket_availability(character varying, bigint, character varying, bigint);
 DROP FUNCTION IF EXISTS public.sd_create_ticket(bigint, character varying, character varying, bigint, double precision, double precision, character varying, bigint, character varying);
+DROP FUNCTION sd_get_winningdetails(bigint,character varying,integer,character varying,character varying,boolean);
 
 
 
@@ -1014,7 +1015,7 @@ declare
 	nodata json [] := '{}';
 begin
 
-	-- 	select sd_topcount(56,'2023-12-30','2023-12-30',4,true,null,56,2,10);
+	-- 	select sd_topcount(224,'2024-01-27','2024-01-27',4,true,null,224,1,100);
 		
 	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO privilage__level;
 	SELECT ext_downlinequery(privilage__level,account__id,req_by,getall,false) INTO downlines;
@@ -1024,7 +1025,9 @@ begin
 			'total_camt', COALESCE(SUM(COALESCE(TICKET_TABLE.C_AMT, 0)), 0),
             'total_damt', COALESCE(SUM(COALESCE(TICKET_TABLE.D_AMT, 0)), 0)) INTO result_json
 		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID) WHERE TICKET_TABLE.DELETED = FALSE 
-		AND BOOKING_TICKETS.DELETED = FALSE AND ACCOUNT_ID = ANY(DOWNLINES)
+		AND BOOKING_TICKETS.DELETED = FALSE 
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND ((privilage__level <> 2 
+		OR (ACCOUNT_ID = req_by AND sub_purchased = TRUE) OR ACCOUNT_ID <> req_by))
 		AND ((FROM_DATE IS NOT NULL AND TO_DATE IS NOT NULL AND P_DATE BETWEEN FROM_DATE AND TO_DATE) 
 			OR(FROM_DATE IS NULL AND TO_DATE IS NULL))
 		AND ((FILTERS IS NOT NULL AND LENGTH(TICKET_NUMBER) = FILTERS::INT) OR FILTERS IS NULL)
@@ -1039,7 +1042,9 @@ begin
             'ticket_type', TICKET_TYPE) AS result_row 
 		FROM TICKET_TABLE INNER JOIN BOOKING_TICKETS USING (BOOKING_ID)  
 		WHERE TICKET_TABLE.DELETED = FALSE 
-		AND BOOKING_TICKETS.DELETED = FALSE AND ACCOUNT_ID = ANY(DOWNLINES)
+		AND BOOKING_TICKETS.DELETED = FALSE 
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND ((privilage__level <> 2 
+		OR (ACCOUNT_ID = req_by AND sub_purchased = TRUE) OR ACCOUNT_ID <> req_by))
         AND ((FROM_DATE IS NOT NULL AND TO_DATE IS NOT NULL AND P_DATE BETWEEN FROM_DATE AND TO_DATE) 
             OR(FROM_DATE IS NULL AND TO_DATE IS NULL))
         AND ((FILTERS IS NOT NULL AND LENGTH(TICKET_NUMBER) = FILTERS::INT) 
@@ -1073,7 +1078,7 @@ DECLARE
  	result_json jsonb;
 BEGIN
 
-	-- select sd_totalcount(56,'2023-12-31','2023-12-31',4,true,56);
+	-- select sd_totalcount(224,'2024-01-27','2024-01-27',4,true,224);
 
 	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO privilage__level;
 	SELECT ext_downlinequery(privilage__level,account__id,req_by,getall,false) INTO downlines;
@@ -1082,7 +1087,9 @@ BEGIN
         'count', COALESCE(SUM(total_count), 0),
         'c_amt', COALESCE(SUM(total_camt), 0),
         'd_amt', COALESCE(SUM(total_damt), 0)) 
-		INTO result_json FROM BOOKING_TICKETS WHERE DELETED = FALSE AND ACCOUNT_ID = ANY(DOWNLINES)
+		INTO result_json FROM BOOKING_TICKETS WHERE DELETED = FALSE 
+		AND ACCOUNT_ID = ANY(DOWNLINES) AND ((privilage__level <> 2 
+		OR (ACCOUNT_ID = req_by AND sub_purchased = TRUE) OR ACCOUNT_ID <> req_by))
         AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
         AND ((FROM_DATE IS NOT NULL AND TO_DATE IS NOT NULL AND P_DATE BETWEEN FROM_DATE AND TO_DATE)
         	OR (FROM_DATE IS NULL AND TO_DATE IS NULL));
@@ -1147,7 +1154,7 @@ BEGIN
 			winning_6 = win_num6, updated_at = CURRENT_TIMESTAMP WHERE s_id = vr_winning_drawid;
 	END IF;
 	
-	delete from winners where ticket_id in ((select ticket_id from tickets where purchase_date=vr_draw_date AND draw_id=draw__id));
+	delete from winners where ticket_id in ((select ticket_id from ticket_table where purchase_date=vr_draw_date AND draw_id=draw__id));
 	
 
 	vr_num1 := LEFT(win_num1,1);
@@ -1324,7 +1331,7 @@ BEGIN
 	raise notice '------------ winning_not_found----------   ticket__id----->% ',ticket__id;
 	UPDATE BOOKING_TICKETS SET WINNING_EXECUTED = TRUE WHERE BOOKING_ID = BOOKING__ID;
 	
-	UPDATE TICKET_TABLE SET WINNING_EXECUTED = TRUE AND WINNED = IS__WINNED WHERE TICKET_ID = TICKET__ID;
+	UPDATE TICKET_TABLE SET WINNING_EXECUTED = TRUE,WINNED = IS__WINNED WHERE TICKET_ID = TICKET__ID;
 	return true;
 END;
 $BODY$;
@@ -1352,7 +1359,7 @@ declare
     grand_totals_result JSONB;
 begin
 
-	--  select sd_dailyreport(56,'2023-12-31','2023-12-31',4,true,null,56,false);
+	--  select sd_dailyreport(224,'2024-01-27','2024-01-27',4,true,null,224,false);
 	
 	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO privilage__level;
 	SELECT ext_downlinequery(privilage__level,account__id,req_by,getall,agent_rate) INTO downlines;
@@ -1367,8 +1374,10 @@ begin
                 SELECT TICKET_ID, COALESCE(SUM(winning_commission), 0) AS WINNING_COMMISSION,
                 COALESCE(SUM(winning_prize), 0) AS WINNING_PRIZE FROM WINNERS GROUP BY TICKET_ID
             ) AS WINNING_DATA ON TICKET_TABLE.TICKET_ID = WINNING_DATA.TICKET_ID
-        WHERE P_DATE BETWEEN FROM_DATE AND TO_DATE AND ACCOUNT_ID = ANY(downlines)
-        AND ACCOUNT_ID = ANY(downlines)
+        WHERE P_DATE BETWEEN FROM_DATE AND TO_DATE 
+		AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
+		OR (ACCOUNT_ID = req_by AND agent_rate = FALSE AND sub_purchased = TRUE)
+		OR (ACCOUNT_ID = req_by AND agent_rate = TRUE)OR ACCOUNT_ID <> req_by))
         AND ((DRAW__ID IS NOT NULL AND BOOKING_TICKETS.DRAW_ID = DRAW__ID) OR DRAW__ID IS NULL)
         AND TICKET_TABLE.DELETED = FALSE AND BOOKING_TICKETS.DELETED = FALSE) AS T1
         GROUP BY T1.USER_NAME ORDER BY T1.USER_NAME DESC);
@@ -1381,7 +1390,7 @@ begin
             'winning_prize', winning_prize::numeric,
             'winning_commission', winning_commission::numeric,
             'dc_prize', winning_prize + winning_commission,
-            'total',(c_amt+d_amt) - (winning_prize+winning_commission),
+            'total',(c_amt - d_amt) - (winning_prize+winning_commission),
             'username', username
         )
     ) INTO json_result FROM temp_result_set;
@@ -1402,7 +1411,7 @@ begin
             COALESCE(SUM(winning_commission), 0) AS grand_winning_commission,
             COALESCE((SUM(winning_prize) + SUM(winning_commission)), 0) AS grand_dc_prize,
             COALESCE((SUM(c_amt) - SUM(d_amt)), 0) AS grand_sales,
-            COALESCE(((SUM(c_amt)+SUM(d_amt)) - (SUM(winning_prize)+SUM(winning_commission))),0) AS grand_total
+            COALESCE(((SUM(c_amt) - SUM(d_amt)) - (SUM(winning_prize)+SUM(winning_commission))),0) AS grand_total
         FROM temp_result_set) AS grand_totals_result1;
 
     DROP TABLE IF EXISTS temp_result_set;
@@ -1496,7 +1505,7 @@ DECLARE
 	downlines bigint[];
 	privilage__level int;
 BEGIN
-	-- select sd_winninghistory(56,'2023-12-31','2023-12-31',4,true,null,56,false);
+	-- select sd_winninghistory(224,'2024-01-27','2024-01-27',4,true,null,224,false);
 	-- select sd_winninghistory(56,'2022-09-15','2022-09-15',1,true,'{"type":"DEAR","number":"034"}'::json,56,false);
 	
 	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = req_by INTO privilage__level;
@@ -1508,7 +1517,10 @@ BEGIN
 		COALESCE(SUM(WINNING_PRIZE),0) + COALESCE(SUM(WINNING_COMMISSION),0) AS total 
 		FROM WINNERS INNER JOIN TICKET_TABLE USING(TICKET_ID) INNER JOIN BOOKING_TICKETS 
 		ON BOOKING_TICKETS.BOOKING_ID = TICKET_TABLE.BOOKING_ID
-			WHERE P_DATE BETWEEN FROM_DATE AND TO_DATE AND ACCOUNT_ID = ANY(downlines)
+			WHERE P_DATE BETWEEN FROM_DATE AND TO_DATE 
+			AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
+			OR (ACCOUNT_ID = req_by AND agent_rate = FALSE AND sub_purchased = TRUE)
+			OR (ACCOUNT_ID = req_by AND agent_rate = TRUE)OR ACCOUNT_ID <> req_by))
 			AND BOOKING_TICKETS.DELETED = FALSE AND TICKET_TABLE.DELETED = FALSE AND WINNED = TRUE 
 			AND BOOKING_TICKETS.WINNING_EXECUTED = TRUE AND TICKET_TABLE.WINNING_EXECUTED = TRUE
 			AND ((FILTERS IS NOT NULL AND TICKET_NUMBER = filters->>('number') 
@@ -1532,6 +1544,71 @@ BEGIN
 	DROP TABLE IF EXISTS temp_winning_set;
 	
 	return to_json(concat ('{"data":{"history":',COALESCE(vr_ticketmap,'[]'),',"grand_values":',z_output,'},"error":null}'));
+END
+$BODY$;
+
+
+
+CREATE OR REPLACE FUNCTION public.sd_get_winningdetails(
+	account__id bigint,
+	p__date character varying,
+	draw__id integer,
+	ticket__type character varying,
+	ticket__number character varying,
+	agent_rate boolean
+)
+    RETURNS json
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+DECLARE
+	vr_ticketmap json;
+	item RECORD;
+	downlines bigint[];
+	privilage__level int;
+BEGIN
+
+	-- select sd_get_winningdetails('224','2024-01-27',4,'DEAR','027',true);
+	SELECT PRIVILAGE_LEVEL FROM USER_LOGIN WHERE ACCOUNT_ID = account__id INTO privilage__level;
+	SELECT ext_downlinequery(privilage__level,account__id,account__id,true,agent_rate) INTO downlines;
+	
+	SELECT JSON_AGG(t) FROM(
+		SELECT TICKET_TYPE,SUM(TICKET_COUNT) AS COUNT,WINNING_RANK AS RANK,
+			D_NAME AS USER_NAME,SUM(winning_prize) AS winned_prize,
+			sum(winning_commission) AS commission,TICKET_NUMBER AS number,purchase_date,
+			COALESCE(sum(winning_prize),0) + COALESCE(sum(winning_commission),0) AS total
+			FROM TICKET_TABLE INNER JOIN WINNERS USING(TICKET_ID) 
+			INNER JOIN BOOKING_TICKETS ON BOOKING_TICKETS.BOOKING_ID = TICKET_TABLE.BOOKING_ID
+			WHERE PURCHASE_DATE = p__date AND TICKET_NUMBER = ticket__number 
+			AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
+			OR (ACCOUNT_ID = account__id AND agent_rate = FALSE AND sub_purchased = TRUE)
+			OR (ACCOUNT_ID = account__id AND agent_rate = TRUE)OR ACCOUNT_ID <> account__id))
+			AND TICKET_TABLE.DRAW_ID = draw__id AND TICKET_TYPE = ticket__type 
+			AND BOOKING_TICKETS.DELETED =  FALSE AND TICKET_TABLE.DELETED = FALSE AND WINNED = TRUE 
+			GROUP BY TICKET_TYPE,TICKET_NUMBER,P_DATE,D_NAME,WINNING_RANK,PURCHASE_DATE
+	)t INTO vr_ticketmap;
+	
+	SELECT COALESCE(sum(winning_prize),0) as total_winning_prize,
+		COALESCE(sum(winning_commission),0) as total_commission,
+		COALESCE(sum(winning_prize),0) + COALESCE(sum(winning_commission),0) as grant_total, 
+		sum(TICKET_COUNT) as total_count
+		FROM TICKET_TABLE INNER JOIN WINNERS USING(TICKET_ID) 
+		INNER JOIN BOOKING_TICKETS ON BOOKING_TICKETS.BOOKING_ID = TICKET_TABLE.BOOKING_ID
+		WHERE PURCHASE_DATE = p__date AND TICKET_NUMBER = ticket__number
+		AND ACCOUNT_ID = ANY(downlines) AND ((privilage__level <> 2 
+		OR (ACCOUNT_ID = account__id AND agent_rate = FALSE AND sub_purchased = TRUE)
+		OR (ACCOUNT_ID = account__id AND agent_rate = TRUE)OR ACCOUNT_ID <> account__id))
+		AND TICKET_TABLE.DRAW_ID = draw__id AND TICKET_TYPE = ticket__type 
+		AND BOOKING_TICKETS.DELETED =  FALSE AND TICKET_TABLE.DELETED = FALSE AND WINNED = TRUE 
+		GROUP BY TICKET_TABLE.WINNING_EXECUTED INTO ITEM;
+	
+	RETURN to_json(concat ('{"data":{"details":',COALESCE(vr_ticketmap,'[]'),
+						   ',"total_winning_prize":',COALESCE(item.total_winning_prize,0),
+						   ',"total_commission":',COALESCE(item.total_commission,0),
+						   ',"grant_total":',COALESCE(item.grant_total,0),
+						   ',"total_count":',COALESCE(item.total_count,0),
+						   '},"error":null}'));
 END
 $BODY$;
 
